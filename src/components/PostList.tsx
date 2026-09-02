@@ -26,7 +26,13 @@ interface Props {
 
 interface PostCount {
   id: number;
+  title: string;
+  content: string;
+  created_at: string;
+  image_url: string | null;
+  like_count: number | null;
   comment_count: number | null;
+  user_avatar_url: string | null;
 }
 
 const fetchPosts = async (): Promise<Post[]> => {
@@ -41,22 +47,26 @@ const fetchPosts = async (): Promise<Post[]> => {
   if (error) throw new Error(error.message);
   if (countError) throw new Error(countError.message);
 
-  const commentCounts = new Map(
-    ((countData ?? []) as PostCount[]).map((row) => [Number(row.id), row.comment_count ?? 0])
+  const communityByPostId = new Map(
+    (data ?? []).map((row: any) => [Number(row.id), row])
   );
 
-  return (data ?? []).map((row: any) => ({
-    id: Number(row.id),
-    title: row.title ?? "",
-    content: row.content ?? "",
-    created_at: row.created_at ?? new Date().toISOString(),
-    image_url: row.image_url ?? "",
-    community_id: row.community_id != null ? Number(row.community_id) : undefined,
-    community_name: row.communities?.name ?? undefined,
+  return ((countData ?? []) as PostCount[]).map((rpcPost) => {
+    const postMetadata = communityByPostId.get(Number(rpcPost.id));
+    return {
+    id: Number(rpcPost.id),
+    title: rpcPost.title ?? "",
+    content: rpcPost.content ?? "",
+    created_at: rpcPost.created_at ?? new Date().toISOString(),
+    image_url: rpcPost.image_url ?? "",
+    avatar_url: rpcPost.user_avatar_url ?? undefined,
+    community_id: postMetadata?.community_id != null ? Number(postMetadata.community_id) : undefined,
+    community_name: postMetadata?.communities?.name ?? undefined,
     community_avatar_url: undefined,
-    like_count: 0,
-    comment_count: commentCounts.get(Number(row.id)) ?? 0,
-  }));
+    like_count: rpcPost.like_count ?? 0,
+    comment_count: rpcPost.comment_count ?? 0,
+    };
+  });
 };
 
 const fetchJoinedCommunityIds = async (userId: string): Promise<Set<number>> => {
