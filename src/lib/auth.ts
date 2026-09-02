@@ -2,10 +2,14 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "../supabase-client";
 
 export const getAuthErrorMessage = (error: unknown): string => {
-  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  const rawMessage = error instanceof Error ? error.message : "";
+  const message = rawMessage.toLowerCase();
 
+  if (message.includes("23505") && message.includes("username")) {
+    return "That username is already taken. Please choose another one.";
+  }
   if (message.includes("already registered") || message.includes("already exists")) {
-    return "An account with this email already exists. Try signing in instead.";
+    return "An account may already exist with this email. Try signing in or continue with GitHub.";
   }
   if (message.includes("invalid login credentials")) {
     return "The email or password is incorrect.";
@@ -17,16 +21,30 @@ export const getAuthErrorMessage = (error: unknown): string => {
     return "That code is invalid or has expired. Request a new code and try again.";
   }
   if (message.includes("rate limit") || message.includes("too many")) {
-    return "Too many attempts. Please wait a moment before trying again.";
+    return "Too many attempts. Please wait a while and try again.";
   }
   if (message.includes("password")) {
     return "Use a password with at least 8 characters, including uppercase, lowercase, and a digit.";
+  }
+  if (message.includes("network") || message.includes("fetch") || message.includes("failed to")) {
+    return "Unable to connect right now. Please check your internet connection and try again.";
   }
   if (message.includes("email")) {
     return "Enter a valid email address.";
   }
 
-  return "Something went wrong. Please try again.";
+  return "We could not complete that request. Please try again.";
+};
+
+export const getFriendlyErrorMessage = (error: unknown, fallback = "We could not complete that request. Please try again.") => {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  if (message.includes("row-level security") || message.includes("permission denied") || message.includes("not allowed")) {
+    return "You do not have permission to complete that action.";
+  }
+  if (message.includes("network") || message.includes("fetch") || message.includes("failed to")) {
+    return "Unable to connect right now. Please check your internet connection and try again.";
+  }
+  return fallback;
 };
 
 export const syncProfileFromUser = async (user: User) => {

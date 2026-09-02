@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
+import { getFriendlyErrorMessage } from "../lib/auth";
 import { PostItem } from "./PostItem";
 import { Post } from "./PostList";
 
@@ -289,7 +290,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
       queryClient.invalidateQueries({ queryKey: ["community-members", variables.communityId] });
     },
     onError: (error) => {
-      setMembershipError(error.message);
+      setMembershipError(getFriendlyErrorMessage(error, "We could not update your community membership."));
       setPending(false);
     },
   });
@@ -315,7 +316,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
       .eq("user_id", targetUserId);
 
     if (error) {
-      setMembershipError(error.message);
+      setMembershipError(getFriendlyErrorMessage(error, "We could not update the member role."));
       return;
     }
 
@@ -340,7 +341,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
       .eq("user_id", targetUserId);
 
     if (error) {
-      setMembershipError(error.message);
+      setMembershipError(getFriendlyErrorMessage(error, "We could not update member permissions."));
       return;
     }
 
@@ -365,7 +366,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
       .eq("user_id", targetUserId);
 
     if (error) {
-      setMembershipError(error.message);
+      setMembershipError(getFriendlyErrorMessage(error, "We could not update member permissions."));
       return;
     }
 
@@ -425,14 +426,14 @@ export const CommunityDisplay = ({ communityId }: Props) => {
   if (communityError)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        Error loading community: {communityError.message}
+        Unable to load this community. Please try again.
       </div>
     );
 
   if (error)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        Error: {error.message}
+        Unable to load community posts. Please try again.
       </div>
     );
 
@@ -557,7 +558,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
             event.preventDefault();
             if (!user || !editName.trim()) return;
             const { error: updateError } = await supabase.from("communities").update({ name: editName.trim(), description: editDescription.trim() || null }).eq("id", communityId).eq("created_by", user.id);
-            if (updateError) setMembershipError(updateError.message); else { setManageOpen(false); queryClient.invalidateQueries({ queryKey: ["community", communityId] }); }
+            if (updateError) setMembershipError(getFriendlyErrorMessage(updateError, "We could not update the community.")); else { setManageOpen(false); queryClient.invalidateQueries({ queryKey: ["community", communityId] }); }
           }}>
             <input aria-label="Community name" value={editName || community?.name || ""} onChange={(event) => setEditName(event.target.value)} required className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none" />
             <textarea aria-label="Community description" value={editDescription || community?.description || ""} onChange={(event) => setEditDescription(event.target.value)} rows={3} className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none" />
@@ -629,7 +630,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
 
           {membersError && (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              Error loading members: {membersError.message}
+              Unable to load community members. Please try again.
             </div>
           )}
 

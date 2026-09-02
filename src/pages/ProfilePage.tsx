@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface ProfileRecord {
   id: string;
@@ -127,7 +128,7 @@ export const ProfilePage = () => {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-sm text-red-700 shadow-sm">
-          Error loading profile: {error.message}
+          Unable to load this profile. Please try again.
         </div>
       </div>
     );
@@ -290,7 +291,7 @@ export const ProfilePage = () => {
 
             {mutation.isError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {mutation.error instanceof Error ? mutation.error.message : "Could not save profile."}
+                {getFriendlyErrorMessage(mutation.error, "Could not save profile. Please try again.")}
               </div>
             )}
 

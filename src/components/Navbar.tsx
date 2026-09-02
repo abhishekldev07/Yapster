@@ -5,7 +5,11 @@ import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
 import { NotificationBell } from "./NotificationBell";
 
-const fetchCurrentProfile = async (userId: string) => {
+interface CurrentProfile {
+  username: string | null;
+}
+
+const fetchCurrentProfile = async (userId: string): Promise<CurrentProfile | null> => {
   const { data, error } = await supabase
     .from("profiles")
     .select("username")
@@ -13,7 +17,7 @@ const fetchCurrentProfile = async (userId: string) => {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  return data;
+  return data as CurrentProfile | null;
 };
 
 export const Navbar = () => {
@@ -28,8 +32,11 @@ export const Navbar = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const profileUsername = currentProfile?.username || user?.user_metadata?.user_name || user?.email;
-  const displayName = currentProfile?.username || user?.user_metadata?.user_name || user?.email;
+  const profileUsername =
+    currentProfile?.username?.trim() ||
+    user?.user_metadata?.user_name?.trim() ||
+    user?.email ||
+    "User";
 
   const navItems = [
     { label: "Home", to: "/" },
@@ -65,7 +72,7 @@ export const Navbar = () => {
               <div className="flex items-center gap-3">
                 <NotificationBell />
                 {user.user_metadata?.avatar_url && (
-                  <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"}>
+                  <Link to={`/profile/${encodeURIComponent(profileUsername)}`}>
                     <img
                       src={user.user_metadata.avatar_url}
                       alt="User Avatar"
@@ -73,8 +80,8 @@ export const Navbar = () => {
                     />
                   </Link>
                 )}
-                <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"} className="h4up-user-name hover:text-emerald-800 transition-colors">
-                  {displayName}
+                <Link to={`/profile/${encodeURIComponent(profileUsername)}`} className="h4up-user-name hover:text-emerald-800 transition-colors">
+                  {profileUsername}
                 </Link>
                 <button type="button" onClick={signOut} className="h4up-button h4up-button--ghost">
                   Sign Out
@@ -151,7 +158,7 @@ export const Navbar = () => {
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {user.user_metadata?.avatar_url && (
-                      <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"}>
+                      <Link to={`/profile/${encodeURIComponent(profileUsername)}`}>
                         <img
                           src={user.user_metadata.avatar_url}
                           alt="User Avatar"
@@ -159,8 +166,8 @@ export const Navbar = () => {
                         />
                       </Link>
                     )}
-                    <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"} className="h4up-user-name hover:text-emerald-800 transition-colors">
-                      {displayName}
+                    <Link to={`/profile/${encodeURIComponent(profileUsername)}`} className="h4up-user-name hover:text-emerald-800 transition-colors">
+                      {profileUsername}
                     </Link>
                   </div>
                   <NotificationBell />

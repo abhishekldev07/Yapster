@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface CommunityInput {
   name: string;
@@ -38,7 +39,7 @@ export const CreateCommunity = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { mutate, isPending, isError } = useMutation({
+  const { mutate, isPending, isError, error: mutationError } = useMutation({
     mutationFn: (input: CommunityInput) => {
       if (!user) throw new Error("You must be signed in to create a community.");
       return createCommunity(input, user.id);
@@ -103,7 +104,7 @@ export const CreateCommunity = () => {
             {isPending ? "Creating..." : "CREATE COMMUNITY"}
           </button>
 
-          {isError && <p className="text-sm text-red-600">Error creating community.</p>}
+          {isError && <p className="text-sm text-red-600">{getFriendlyErrorMessage(mutationError, "Unable to create community. Please try again.")}</p>}
         </form>
       )}
     </div>

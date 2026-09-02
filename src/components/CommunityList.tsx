@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 export type CommunityRole = "owner" | "moderator" | "member";
 
@@ -138,7 +139,7 @@ export const CommunityList = () => {
       queryClient.invalidateQueries({ queryKey: ["community-membership", variables.communityId] });
     },
     onError: (error) => {
-      setMembershipError(error.message);
+      setMembershipError(getFriendlyErrorMessage(error, "We could not update your community membership."));
       setPendingCommunityId(null);
     },
   });
@@ -181,7 +182,7 @@ export const CommunityList = () => {
   if (error)
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        Error loading communities: {error.message}
+        Unable to load communities. Please try again.
       </div>
     );
 

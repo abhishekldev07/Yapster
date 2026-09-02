@@ -20,19 +20,22 @@ export const LoginPage = () => {
     setError(null);
     setMessage(null);
     setIsLoading(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setIsLoading(false);
-
-    if (signInError) {
-      const friendlyError = getAuthErrorMessage(signInError);
-      if (signInError.message.toLowerCase().includes("email not confirmed")) {
-        navigate("/verify-email", { state: { email: email.trim() } });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (signInError) {
+        if (signInError.message.toLowerCase().includes("email not confirmed")) {
+          navigate("/verify-email", { state: { email: email.trim() } });
+          return;
+        }
+        setError(getAuthErrorMessage(signInError));
         return;
       }
-      setError(friendlyError);
-      return;
+      navigate("/");
+    } catch (signInError) {
+      setError(getAuthErrorMessage(signInError));
+    } finally {
+      setIsLoading(false);
     }
-    navigate("/");
   };
 
   return (

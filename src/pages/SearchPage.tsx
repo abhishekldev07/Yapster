@@ -415,7 +415,7 @@ export const SearchPage = () => {
           {hasSearchQuery && isLoading && renderSkeleton()}
           {hasSearchQuery && !isLoading && error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-              {error.message}
+              Unable to complete the search. Please try again.
             </div>
           )}
           {hasSearchQuery && !isLoading && !error && !totalResults && renderEmptyState()}

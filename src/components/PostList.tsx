@@ -144,7 +144,7 @@ export const PostList = ({ mode = "discover", userId }: Props) => {
   if (error) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        Error loading posts: {error.message}
+        Unable to load posts. Please try again.
       </div>
     );
   }

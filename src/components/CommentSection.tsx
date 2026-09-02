@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router";
 import { supabase } from "../supabase-client";
 import { CommentItem } from "./CommentItem";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface Props {
   postId: number;
@@ -18,6 +20,11 @@ interface MembershipStatus {
   role: string;
   muted: boolean;
   banned: boolean;
+}
+
+interface CommentAccess {
+  ownerId: string | null;
+  membership: MembershipStatus | null;
 }
 
 export interface Comment {
@@ -62,16 +69,14 @@ const fetchComments = async (postId: number): Promise<Comment[]> => {
   return data as Comment[];
 };
 
-const fetchUserMembershipStatus = async (communityId: number, userId: string): Promise<MembershipStatus | null> => {
-  const { data, error } = await supabase
-    .from("community_members")
-    .select("role, muted, banned")
-    .eq("community_id", communityId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  return data as MembershipStatus | null;
+const fetchCommentAccess = async (communityId: number, userId: string): Promise<CommentAccess> => {
+  const [{ data: community, error: communityError }, { data: membership, error: membershipError }] = await Promise.all([
+    supabase.from("communities").select("created_by").eq("id", communityId).maybeSingle(),
+    supabase.from("community_members").select("role, muted, banned").eq("community_id", communityId).eq("user_id", userId).maybeSingle(),
+  ]);
+  if (communityError) throw new Error(communityError.message);
+  if (membershipError) throw new Error(membershipError.message);
+  return { ownerId: community?.created_by ?? null, membership: membership as MembershipStatus | null };
 };
 
 export const CommentSection = ({ postId, communityId }: Props) => {
@@ -89,14 +94,17 @@ export const CommentSection = ({ postId, communityId }: Props) => {
     refetchInterval: 5000,
   });
 
-  const { data: membershipStatus } = useQuery<MembershipStatus | null, Error>({
+  const { data: commentAccess } = useQuery<CommentAccess | null, Error>({
     queryKey: ["membership-status-comment", communityId, user?.id],
-    queryFn: () => (user && communityId ? fetchUserMembershipStatus(communityId, user.id) : Promise.resolve(null)),
+    queryFn: () => (user && communityId ? fetchCommentAccess(communityId, user.id) : Promise.resolve(null)),
     enabled: !!user && !!communityId,
     retry: false,
   });
 
-  const { mutate, isPending, isError } = useMutation({
+  const membershipStatus = commentAccess?.membership;
+  const isOwner = Boolean(user && commentAccess?.ownerId === user.id);
+
+  const { mutate, isPending, error: mutationError } = useMutation({
     mutationFn: (newComment: NewComment) =>
       createComment(
         newComment,
@@ -119,7 +127,14 @@ export const CommentSection = ({ postId, communityId }: Props) => {
 
   const isBanned = membershipStatus?.banned || false;
   const isMuted = membershipStatus?.muted || false;
-  const canComment = !isBanned && !isMuted;
+  const canComment = isOwner || Boolean(membershipStatus) && !isBanned && !isMuted;
+  const commentError = mutationError
+    ? isBanned
+      ? "You're banned from this community and cannot comment."
+      : isMuted
+        ? "You're muted in this community and cannot comment right now."
+        : getFriendlyErrorMessage(mutationError, "Join this community to comment.")
+    : null;
 
   /* Map of Comments - Organize Replies - Return Tree  */
   const buildCommentTree = (
@@ -197,9 +212,10 @@ export const CommentSection = ({ postId, communityId }: Props) => {
             >
               {isPending ? "Posting..." : "Post Comment"}
             </button>
-            {isError && (
-              <p className="text-red-500 mt-2">Error posting comment.</p>
-            )}
+            {commentError && <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-red-700">
+              <span>{commentError}</span>
+              {!isOwner && communityId && <Link to={`/community/${communityId}`} className="font-semibold text-emerald-700 hover:text-emerald-800">Join community</Link>}
+            </div>}
           </form>
         </>
       ) : (

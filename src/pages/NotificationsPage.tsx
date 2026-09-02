@@ -11,6 +11,7 @@ import {
   markNotificationsRead,
   NotificationRecord,
 } from "../lib/notifications";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 export const NotificationsPage = () => {
   const { user } = useAuth();
@@ -125,6 +126,11 @@ export const NotificationsPage = () => {
         </div>
 
         <div className="mt-6">
+          {(notificationsQuery.error || unreadCountQuery.error || markAllAsReadMutation.error) && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {getFriendlyErrorMessage(notificationsQuery.error || unreadCountQuery.error || markAllAsReadMutation.error, "Unable to load notifications. Please try again.")}
+            </div>
+          )}
           {notificationsQuery.isLoading ? (
             <div className="space-y-4">
               {[0, 1, 2].map((item) => (

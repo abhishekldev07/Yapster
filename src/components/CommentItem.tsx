@@ -4,6 +4,7 @@ import { Comment } from "./CommentSection";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface Props {
   comment: Comment & {
@@ -42,7 +43,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { mutate, isPending, isError } = useMutation({
+  const { mutate, isPending, error: mutationError } = useMutation({
     mutationFn: (replyContent: string) =>
       createReply(
         replyContent,
@@ -53,6 +54,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
       setReplyText("");
       setShowReply(false);
     },
@@ -108,7 +110,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
           >
             {isPending ? "Posting..." : "Post Reply"}
           </button>
-          {isError && <p className="text-red-500">Error posting reply.</p>}
+          {mutationError && <p className="text-sm text-red-700">{getFriendlyErrorMessage(mutationError, "Join this community to reply.")}</p>}
         </form>
       )}
 

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { supabase } from "../supabase-client";
 import { useAuth } from "../context/AuthContext";
 import { Community, fetchCommunities } from "./CommunityList";
+import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface PostInput {
   title: string;
@@ -271,9 +272,7 @@ export const CreatePost = () => {
       {isError && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm text-red-800">
-            {mutationError instanceof Error
-              ? mutationError.message
-              : "Error creating post. Please try again."}
+            {getFriendlyErrorMessage(mutationError, "Unable to create post. Please try again.")}
           </p>
         </div>
       )}
