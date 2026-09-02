@@ -24,13 +24,26 @@ interface Props {
   userId?: string | null;
 }
 
+interface PostCount {
+  id: number;
+  comment_count: number | null;
+}
+
 const fetchPosts = async (): Promise<Post[]> => {
-  const { data, error } = await supabase
-    .from("posts")
-    .select("id, community_id, title, content, created_at, image_url, communities(id, name)")
-    .order("created_at", { ascending: false });
+  const [{ data, error }, { data: countData, error: countError }] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id, community_id, title, content, created_at, image_url, communities(id, name)")
+      .order("created_at", { ascending: false }),
+    supabase.rpc("get_posts_with_counts"),
+  ]);
 
   if (error) throw new Error(error.message);
+  if (countError) throw new Error(countError.message);
+
+  const commentCounts = new Map(
+    ((countData ?? []) as PostCount[]).map((row) => [Number(row.id), row.comment_count ?? 0])
+  );
 
   return (data ?? []).map((row: any) => ({
     id: Number(row.id),
@@ -42,7 +55,7 @@ const fetchPosts = async (): Promise<Post[]> => {
     community_name: row.communities?.name ?? undefined,
     community_avatar_url: undefined,
     like_count: 0,
-    comment_count: 0,
+    comment_count: commentCounts.get(Number(row.id)) ?? 0,
   }));
 };
 

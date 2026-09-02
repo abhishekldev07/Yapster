@@ -81,13 +81,11 @@ export const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={signInWithGitHub}
-                className="h4up-button h4up-button--primary"
-              >
-                Sign in with GitHub
-              </button>
+              <div className="flex items-center gap-2">
+                <Link to="/login" className="h4up-button h4up-button--ghost">Sign in</Link>
+                <Link to="/signup" className="h4up-button h4up-button--primary">Sign up</Link>
+                <button type="button" onClick={signInWithGitHub} className="h4up-button h4up-button--ghost">GitHub</button>
+              </div>
             )}
           </div>
 
@@ -172,13 +170,11 @@ export const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={signInWithGitHub}
-                className="h4up-button h4up-button--primary w-full"
-              >
-                Sign in with GitHub
-              </button>
+              <div className="grid gap-2">
+                <Link to="/login" className="h4up-button h4up-button--ghost w-full" onClick={() => setMenuOpen(false)}>Sign in</Link>
+                <Link to="/signup" className="h4up-button h4up-button--primary w-full" onClick={() => setMenuOpen(false)}>Sign up</Link>
+                <button type="button" onClick={signInWithGitHub} className="h4up-button h4up-button--ghost w-full">Continue with GitHub</button>
+              </div>
             )}
           </div>
         </div>

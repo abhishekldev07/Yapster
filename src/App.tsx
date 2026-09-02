@@ -9,6 +9,11 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { LoginPage } from "./pages/LoginPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { SignupPage } from "./pages/SignupPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 
 function App() {
   return (
@@ -16,6 +21,11 @@ function App() {
       <Navbar />
       <div className="container mx-auto px-4 py-6">
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/" element={<Home />} />
           <Route path="/create" element={<CreatePostPage />} />
           <Route path="/post/:id" element={<PostPage />} />
