@@ -1,0 +1,188 @@
+import { useState } from "react";
+import { Link } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../supabase-client";
+import { NotificationBell } from "./NotificationBell";
+
+const fetchCurrentProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const Navbar = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { signInWithGitHub, signOut, user } = useAuth();
+
+  const { data: currentProfile } = useQuery({
+    queryKey: ["profile-navbar", user?.id],
+    queryFn: () => (user ? fetchCurrentProfile(user.id) : null),
+    enabled: !!user,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const profileUsername = currentProfile?.username || user?.user_metadata?.user_name || user?.email;
+  const displayName = currentProfile?.username || user?.user_metadata?.user_name || user?.email;
+
+  const navItems = [
+    { label: "Home", to: "/" },
+    { label: "Explore", to: "/communities" },
+    { label: "Communities", to: "/communities" },
+    { label: "Create", to: "/create" },
+    { label: "Search", to: "/search" },
+  ];
+
+  return (
+    <nav className="fixed top-0 z-40 w-full h4up-navbar">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link to="/" className="h4up-brand" aria-label="H4UP home">
+            <span className="h4up-brand__mark">H4</span>
+            <span className="h4up-brand__word">UP</span>
+          </Link>
+
+          <div className="hidden items-center gap-2 md:flex" aria-label="Main navigation">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className="h4up-nav-link"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="hidden items-center gap-3 md:flex">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <NotificationBell />
+                {user.user_metadata?.avatar_url && (
+                  <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"}>
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="User Avatar"
+                      className="h4up-avatar"
+                    />
+                  </Link>
+                )}
+                <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"} className="h4up-user-name hover:text-emerald-800 transition-colors">
+                  {displayName}
+                </Link>
+                <button type="button" onClick={signOut} className="h4up-button h4up-button--ghost">
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={signInWithGitHub}
+                className="h4up-button h4up-button--primary"
+              >
+                Sign in with GitHub
+              </button>
+            )}
+          </div>
+
+          <div className="md:hidden">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="h4up-menu-toggle"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {menuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {menuOpen && (
+        <div className="h4up-mobile-menu md:hidden">
+          <div className="mx-auto max-w-6xl space-y-1 px-4 pb-4 pt-2 sm:px-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className="h4up-mobile-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <Link
+              to="/community/create"
+              className="h4up-mobile-link"
+              onClick={() => setMenuOpen(false)}
+            >
+              Create Community
+            </Link>
+
+            {user ? (
+              <div className="h4up-mobile-auth">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {user.user_metadata?.avatar_url && (
+                      <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"}>
+                        <img
+                          src={user.user_metadata.avatar_url}
+                          alt="User Avatar"
+                          className="h4up-avatar"
+                        />
+                      </Link>
+                    )}
+                    <Link to={profileUsername ? `/profile/${encodeURIComponent(profileUsername)}` : "#"} className="h4up-user-name hover:text-emerald-800 transition-colors">
+                      {displayName}
+                    </Link>
+                  </div>
+                  <NotificationBell />
+                </div>
+                <button type="button" onClick={signOut} className="h4up-button h4up-button--ghost w-full">
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={signInWithGitHub}
+                className="h4up-button h4up-button--primary w-full"
+              >
+                Sign in with GitHub
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};

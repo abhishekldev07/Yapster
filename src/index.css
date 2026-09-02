@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+:root {
+  --h4up-bg: #f5f3ee;
+  --h4up-bg-strong: #f0efe9;
+  --h4up-surface: rgba(255, 255, 255, 0.92);
+  --h4up-surface-strong: #ffffff;
+  --h4up-border: #e7e1d8;
+  --h4up-border-strong: #d9d0c3;
+  --h4up-text: #1f2937;
+  --h4up-text-soft: #475467;
+  --h4up-accent: #1d6d5f;
+  --h4up-accent-soft: #ebf5f2;
+  --h4up-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+@layer utilities {
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  .animate-blink {
+    animation: blink 0.8s step-end infinite;
+  }
+  @keyframes loading {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+  .animate-loading-bar {
+    animation: loading 0.8s ease infinite;
+  }
+}
+
+html {
+  background: var(--h4up-bg);
+  color: var(--h4up-text);
+  font-family: Inter, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(29, 109, 95, 0.08), transparent 30%),
+    var(--h4up-bg);
+  color: var(--h4up-text);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+#root > div.min-h-screen {
+  background: transparent !important;
+  color: var(--h4up-text) !important;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(29, 109, 95, 0.5);
+  outline-offset: 2px;
+}
+
+p,
+span,
+li,
+label,
+strong {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--h4up-text);
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.h4up-navbar {
+  background: rgba(255, 255, 255, 0.84);
+  border-bottom: 1px solid var(--h4up-border);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+.h4up-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  color: var(--h4up-text);
+  text-decoration: none;
+}
+
+.h4up-brand__mark,
+.h4up-brand__word {
+  display: inline-block;
+}
+
+.h4up-brand__mark {
+  color: var(--h4up-accent);
+}
+
+.h4up-nav-link,
+.h4up-mobile-link {
+  color: var(--h4up-text-soft);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.75rem;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.h4up-nav-link:hover,
+.h4up-mobile-link:hover {
+  color: var(--h4up-text);
+  background: rgba(29, 109, 95, 0.06);
+}
+
+.h4up-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.72rem 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.h4up-button:hover {
+  transform: translateY(-1px);
+}
+
+.h4up-button--primary {
+  background: var(--h4up-accent);
+  color: white;
+  box-shadow: 0 10px 24px rgba(29, 109, 95, 0.18);
+}
+
+.h4up-button--primary:hover {
+  box-shadow: 0 12px 28px rgba(29, 109, 95, 0.22);
+}
+
+.h4up-button--ghost {
+  background: transparent;
+  border-color: var(--h4up-border-strong);
+  color: var(--h4up-text);
+}
+
+.h4up-avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 9999px;
+  object-fit: cover;
+  border: 1px solid var(--h4up-border);
+  background: var(--h4up-bg-strong);
+}
+
+.h4up-user-name {
+  color: var(--h4up-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.h4up-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--h4up-border);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--h4up-text);
+}
+
+.h4up-mobile-menu {
+  border-top: 1px solid var(--h4up-border);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.h4up-mobile-link {
+  display: block;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.8rem;
+}
+
+.h4up-mobile-auth {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--h4up-border);
+}
+
+@media (max-width: 767px) {
+  .h4up-brand {
+    font-size: 1.35rem;
+  }
+
+  .h4up-button {
+    width: 100%;
+  }
+}
