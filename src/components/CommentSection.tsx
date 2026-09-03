@@ -115,6 +115,7 @@ export const CommentSection = ({ postId, communityId }: Props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["communityPost"] });
     },
   });
 

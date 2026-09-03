@@ -35,7 +35,7 @@ interface PostCount {
   user_avatar_url: string | null;
 }
 
-const fetchPosts = async (): Promise<Post[]> => {
+export const fetchPosts = async (): Promise<Post[]> => {
   const [{ data, error }, { data: countData, error: countError }] = await Promise.all([
     supabase
       .from("posts")

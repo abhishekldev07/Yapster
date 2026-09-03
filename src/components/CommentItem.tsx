@@ -55,6 +55,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["communityPost"] });
       setReplyText("");
       setShowReply(false);
     },

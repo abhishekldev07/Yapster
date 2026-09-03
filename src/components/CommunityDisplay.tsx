@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
 import { getFriendlyErrorMessage } from "../lib/auth";
 import { PostItem } from "./PostItem";
-import { Post } from "./PostList";
+import { fetchPosts, Post } from "./PostList";
 
 interface Props {
   communityId: number;
@@ -31,12 +31,6 @@ interface CommunityMemberRecord {
   muted?: boolean;
   banned?: boolean;
   joined_at?: string;
-}
-
-interface PostWithCommunity extends Post {
-  communities?: {
-    name: string;
-  };
 }
 
 const fetchCommunityById = async (communityId: number): Promise<CommunityRecord> => {
@@ -138,15 +132,9 @@ const fetchOwnerProfile = async (userId: string): Promise<CommunityMemberRecord 
 
 export const fetchCommunityPost = async (
   communityId: number
-): Promise<PostWithCommunity[]> => {
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*, communities(name)")
-    .eq("community_id", communityId)
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-  return data as PostWithCommunity[];
+): Promise<Post[]> => {
+  const posts = await fetchPosts();
+  return posts.filter((post) => Number(post.community_id) === communityId);
 };
 
 export const CommunityDisplay = ({ communityId }: Props) => {
@@ -172,7 +160,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
     enabled: !!communityId,
   });
 
-  const { data, error, isLoading } = useQuery<PostWithCommunity[], Error>({
+  const { data, error, isLoading } = useQuery<Post[], Error>({
     queryKey: ["communityPost", communityId],
     queryFn: () => fetchCommunityPost(communityId),
     enabled: !!communityId,
