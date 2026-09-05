@@ -51,7 +51,7 @@ export const Home = () => {
                 <div className="hidden shrink-0 sm:block">
                   <Link
                     to={user ? "/create" : "/signup"}
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-100"
+                    className="yapster-hero-cta inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold transition hover:-translate-y-0.5"
                   >
                     {user ? "Create post" : "Join Yapster"}
                     <ArrowIcon />
@@ -142,8 +142,8 @@ export const Home = () => {
                       <span className="w-5 shrink-0 text-center text-xs font-extrabold text-slate-300">
                         {String(index + 1).padStart(2, "0")}
                       </span>
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black text-violet-800 ring-1 ring-black/5">
-                        {community.name.slice(0, 1).toUpperCase()}
+                      <span className="yapster-community-initial grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black ring-1 ring-black/5">
+                        {community.name.trim().slice(0, 1).toUpperCase() || "Y"}
                       </span>
                       <span className="min-w-0 flex-1">
                         <strong className="block truncate text-sm font-bold text-slate-800 transition group-hover:text-violet-700">
