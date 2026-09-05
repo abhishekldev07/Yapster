@@ -6,7 +6,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { ReportDialog } from "./ReportDialog";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface Props {
@@ -56,6 +56,18 @@ export const CommentItem = ({ comment, postId, communityId }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isOwnComment = Boolean(user && user.id === comment.user_id);
+
+  const { data: postCommunityId = null } = useQuery<number | null, Error>({
+    queryKey: ["comment-post-community", postId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("posts").select("community_id").eq("id", postId).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data?.community_id != null ? Number(data.community_id) : null;
+    },
+    enabled: !communityId,
+    staleTime: 5 * 60 * 1000,
+  });
+  const resolvedCommunityId = communityId ?? postCommunityId;
 
   const invalidateCommentQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["comments", postId] });
@@ -210,7 +222,7 @@ export const CommentItem = ({ comment, postId, communityId }: Props) => {
                         <DeleteIcon />{deleteMutation.isPending ? "Deleting..." : "Delete"}
                       </button>
                     </>
-                  ) : user && communityId ? (
+                  ) : user && resolvedCommunityId ? (
                     <button type="button" onClick={() => setReportDialogOpen(true)} className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-450 transition hover:text-red-600">
                       <FlagIcon />Report
                     </button>
@@ -245,7 +257,7 @@ export const CommentItem = ({ comment, postId, communityId }: Props) => {
         )}
 
         {comment.children && comment.children.length > 0 && !isCollapsed && (
-          <div className="mt-3 space-y-3">{comment.children.map((child) => <CommentItem key={child.id} comment={child} postId={postId} communityId={communityId} />)}</div>
+          <div className="mt-3 space-y-3">{comment.children.map((child) => <CommentItem key={child.id} comment={child} postId={postId} communityId={resolvedCommunityId} />)}</div>
         )}
       </div>
 
@@ -259,8 +271,8 @@ export const CommentItem = ({ comment, postId, communityId }: Props) => {
         onConfirm={() => deleteMutation.mutate()}
       />
 
-      {communityId && (
-        <ReportDialog open={reportDialogOpen} communityId={communityId} targetType="comment" targetId={comment.id} onClose={() => setReportDialogOpen(false)} />
+      {resolvedCommunityId && (
+        <ReportDialog open={reportDialogOpen} communityId={resolvedCommunityId} targetType="comment" targetId={comment.id} onClose={() => setReportDialogOpen(false)} />
       )}
     </>
   );
