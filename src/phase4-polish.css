@@ -67,6 +67,16 @@
 }
 .yapster-popover-menu button:hover { background: var(--y-surface-muted); }
 
+/* Inbox menus live in the row flow so the sidebar scroller never clips the dropdown. */
+.yapster-inbox-row > .yapster-popover-menu {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 30 !important;
+  width: calc(100% - 1rem);
+  min-width: 0;
+  margin: -.2rem .5rem .55rem;
+}
+
 /* Keep message action chrome visible on keyboard focus as well as hover. */
 .yapster-message-row .yapster-message-hover-actions,
 .yapster-inbox-row .yapster-inbox-hover-actions {
@@ -82,6 +92,59 @@
 .yapster-inbox-hover-actions.is-open {
   opacity: 1 !important;
   transform: translateY(0) !important;
+}
+
+/* Deep chat chrome in dark mode: no pale grey circles or washed-out emoji panels. */
+html[data-theme="dark"] .yapster-message-hover-actions > button,
+html[data-theme="dark"] .yapster-inbox-hover-actions,
+html[data-theme="dark"] button[aria-label="Add emoji"] {
+  background: transparent !important;
+  color: #9999aa !important;
+  border-color: #2a2a36 !important;
+}
+html[data-theme="dark"] .yapster-message-hover-actions > button:hover,
+html[data-theme="dark"] .yapster-inbox-hover-actions:hover,
+html[data-theme="dark"] button[aria-label="Add emoji"]:hover {
+  background: #20202a !important;
+  color: #f4f4f7 !important;
+}
+html[data-theme="dark"] .yapster-message-hover-actions > div[class*="bg-white"],
+html[data-theme="dark"] [data-chat-popover] > div[class*="bg-white"] {
+  background: #14141d !important;
+  border-color: #2b2b38 !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.48) !important;
+}
+html[data-theme="dark"] .yapster-message-hover-actions > div button:hover,
+html[data-theme="dark"] [data-chat-popover] > div button:hover {
+  background: #20202a !important;
+}
+html[data-theme="dark"] .yapster-inbox-row {
+  background: transparent !important;
+}
+html[data-theme="dark"] .yapster-inbox-row:hover,
+html[data-theme="dark"] .yapster-inbox-row:focus-within {
+  background: #15151f !important;
+}
+
+/* Native profile file upload should match the polished community upload controls. */
+input[type="file"]:not(.yapster-file-input) {
+  color: var(--y-text-soft) !important;
+  font-size: .82rem !important;
+  margin-bottom: .2rem;
+}
+input[type="file"]:not(.yapster-file-input)::file-selector-button {
+  margin-right: .8rem !important;
+  border: 1px solid var(--y-border-strong) !important;
+  border-radius: .7rem !important;
+  background: var(--y-surface-muted) !important;
+  color: var(--y-text) !important;
+  padding: .55rem .8rem !important;
+  font-size: .75rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+input[type="file"]:not(.yapster-file-input)::file-selector-button:hover {
+  background: var(--y-surface) !important;
 }
 
 /* Native file inputs are replaced by labelled upload controls in the polished forms. */
@@ -102,4 +165,49 @@
 }
 .yapster-upload-button:hover { border-color: #aaa6b8; background: var(--y-surface); }
 
-html[data-theme="dark"] .yapster-popover-menu { box-shadow: 0 18px 44px rgba(0,0,0,.42); }
+/* Give the Create Post type selector breathing room. */
+.yapster-create-post-page form > div:first-child > p:first-child {
+  margin-bottom: .9rem !important;
+}
+
+/* Standardized, breathable back-to-community action across community tool pages. */
+main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  border: 1px solid transparent !important;
+  border-radius: .65rem !important;
+  background: var(--y-surface-muted) !important;
+  color: var(--y-text-soft) !important;
+  padding: .55rem .8rem !important;
+  font-size: .75rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease !important;
+}
+main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child:hover,
+main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child:hover,
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child:hover {
+  background: var(--y-surface) !important;
+  border-color: var(--y-border-strong) !important;
+  color: var(--y-text) !important;
+}
+
+html[data-theme="dark"] .yapster-popover-menu {
+  background: #14141d !important;
+  border-color: #2b2b38 !important;
+  box-shadow: 0 18px 44px rgba(0,0,0,.48);
+}
+html[data-theme="dark"] input[type="file"]:not(.yapster-file-input)::file-selector-button,
+html[data-theme="dark"] .yapster-upload-button {
+  background: #1b1b25 !important;
+  border-color: #30303d !important;
+  color: #ededf2 !important;
+}
+html[data-theme="dark"] input[type="file"]:not(.yapster-file-input)::file-selector-button:hover,
+html[data-theme="dark"] .yapster-upload-button:hover {
+  background: #23232e !important;
+}
