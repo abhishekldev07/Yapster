@@ -221,6 +221,57 @@ html[data-theme="dark"] .yapster-hero-cta {
   background: #ffffff !important;
 }
 
+/* Post detail + threaded discussion: keep the dark surface hierarchy intentional. */
+html[data-theme="dark"] article:has(> section[aria-label="Post comments"]) {
+  background: #111119 !important;
+  border-color: #242432 !important;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.24);
+}
+
+html[data-theme="dark"] article:has(> section[aria-label="Post comments"]) > div:nth-child(2) {
+  background: #111119 !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] {
+  background: #0c0c12 !important;
+  border-top-color: #242432 !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .bg-white {
+  background: #14141d !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .bg-white\/60 {
+  background: rgba(20, 20, 29, 0.72) !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .bg-slate-50\/60 {
+  background: #0c0c12 !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .bg-violet-50\/35 {
+  background: rgba(37, 26, 60, 0.58) !important;
+  border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .border-l {
+  border-left-color: rgba(155, 112, 255, 0.25) !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] .rounded-\[15px\].border {
+  border-color: #282837 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] textarea {
+  background: #101018 !important;
+  border-color: #30303f !important;
+}
+
+html[data-theme="dark"] section[aria-label="Post comments"] textarea:focus {
+  border-color: rgba(155, 112, 255, 0.62) !important;
+}
+
 @media (max-width: 760px) {
   .yapster-theme-toggle {
     width: 35px;
