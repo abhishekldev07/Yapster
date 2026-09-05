@@ -58,7 +58,12 @@ export const LoginPage = () => {
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
         <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />or<span className="h-px flex-1 bg-slate-200" /></div>
-        <button type="button" onClick={signInWithGitHub} className="yapster-github-button w-full">
+        <button
+          type="button"
+          onClick={signInWithGitHub}
+          className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/10 px-4 text-sm font-extrabold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          style={{ backgroundColor: "#ffffff", color: "#111118" }}
+        >
           <GitHubIcon />
           <span>Continue with GitHub</span>
         </button>
