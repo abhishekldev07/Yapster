@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { CommunityDisplay } from "../components/CommunityDisplay";
@@ -18,12 +19,33 @@ export const CommunityPage = () => {
   const { id } = useParams<{ id: string }>();
   const communityId = Number(id);
   const { user } = useAuth();
+  const communityDisplayRef = useRef<HTMLDivElement>(null);
   const { data: canManage = false } = useQuery<boolean, Error>({
     queryKey: ["community-can-manage", communityId, user?.id],
     queryFn: () => (user ? fetchCanManageCommunity(communityId, user.id) : Promise.resolve(false)),
     enabled: !!user && Number.isFinite(communityId) && communityId > 0,
     retry: false,
   });
+
+  useEffect(() => {
+    const root = communityDisplayRef.current;
+    if (!root) return;
+
+    const relabelMembershipAction = () => {
+      root.querySelectorAll("button").forEach((button) => {
+        if (button.textContent?.trim() === "Joined") {
+          button.textContent = "Leave community";
+          button.setAttribute("aria-label", "Leave community");
+          button.setAttribute("title", "Leave community");
+        }
+      });
+    };
+
+    relabelMembershipAction();
+    const observer = new MutationObserver(relabelMembershipAction);
+    observer.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [communityId]);
 
   return (
     <main className="yapster-community-page pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
@@ -46,7 +68,9 @@ export const CommunityPage = () => {
             </Link>
           )}
         </div>
-        <CommunityDisplay communityId={communityId} />
+        <div ref={communityDisplayRef}>
+          <CommunityDisplay communityId={communityId} />
+        </div>
       </div>
     </main>
   );
