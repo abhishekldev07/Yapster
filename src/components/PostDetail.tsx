@@ -6,7 +6,9 @@ import { supabase } from "../supabase-client";
 import { LikeButton } from "./LikeButton";
 import { SaveButton } from "./SaveButton";
 import { PollCard } from "./PollCard";
+import { ReportDialog } from "./ReportDialog";
 import { CommentSection } from "./CommentSection";
+import { useAuth } from "../context/AuthContext";
 
 interface Props {
   postId: number;
@@ -49,6 +51,12 @@ const ShareIcon = () => (
   </svg>
 );
 
+const FlagIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M6 21V4m0 1h9.5l-1.4 3 1.4 3H6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const LinkIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
     <path d="M9.5 14.5 14.5 9M7.7 16.3l-1.3 1.3a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M16.3 7.7l1.3-1.3a3.5 3.5 0 1 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" strokeLinecap="round" />
@@ -56,7 +64,9 @@ const LinkIcon = () => (
 );
 
 export const PostDetail = ({ postId }: Props) => {
+  const { user } = useAuth();
   const [shareState, setShareState] = useState<string | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const { data, error, isLoading } = useQuery<PostWithCommunity, Error>({
     queryKey: ["post", postId],
     queryFn: () => fetchPostById(postId),
@@ -125,49 +135,59 @@ export const PostDetail = ({ postId }: Props) => {
   const authorUsername = author?.username?.trim();
   const authorLabel = author?.display_name?.trim() || authorUsername || "Yapster member";
   const typeLabel = flair?.name || (data.post_type === "image" ? "Image" : data.post_type === "link" ? "Link" : data.post_type === "poll" ? "Poll" : "Discussion");
+  const isOwnPost = Boolean(user && data.user_id && user.id === data.user_id);
 
   return (
-    <article className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-      <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
-      <div className="p-5 sm:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <Link to={community ? `/community/${community.id}` : "/communities"} className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">{(community?.name || "C").slice(0, 1).toUpperCase()}</Link>
-            <div className="min-w-0">
-              {community ? <Link to={`/community/${community.id}`} className="block truncate text-sm font-extrabold text-slate-900 transition hover:text-violet-700">{community.name}</Link> : <span className="block text-sm font-extrabold text-slate-900">Community</span>}
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-400">
-                {authorUsername ? <Link to={`/profile/${encodeURIComponent(authorUsername)}`} className="font-bold text-slate-500 hover:text-violet-700">{authorLabel}</Link> : <span>{authorLabel}</span>}
-                <span aria-hidden="true">•</span><time dateTime={data.created_at}>{formattedDate}</time>
+    <>
+      <article className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+        <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
+        <div className="p-5 sm:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <Link to={community ? `/community/${community.id}` : "/communities"} className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">{(community?.name || "C").trim().slice(0, 1).toUpperCase() || "C"}</Link>
+              <div className="min-w-0">
+                {community ? <Link to={`/community/${community.id}`} className="block truncate text-sm font-extrabold text-slate-900 transition hover:text-violet-700">{community.name.trim()}</Link> : <span className="block text-sm font-extrabold text-slate-900">Community</span>}
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-400">
+                  {authorUsername ? <Link to={`/profile/${encodeURIComponent(authorUsername)}`} className="font-bold text-slate-500 hover:text-violet-700">{authorLabel}</Link> : <span>{authorLabel}</span>}
+                  <span aria-hidden="true">•</span><time dateTime={data.created_at}>{formattedDate}</time>
+                </div>
               </div>
             </div>
+            <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em]" style={flair ? { backgroundColor: `${flair.color}20`, color: flair.color } : undefined}>{typeLabel}</span>
           </div>
-          <span className="rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em]" style={flair ? { backgroundColor: `${flair.color}20`, color: flair.color } : undefined}>{typeLabel}</span>
+
+          <h1 className="mt-6 break-words text-3xl font-black leading-[1.16] tracking-[-0.045em] text-slate-950 sm:text-4xl">{data.title}</h1>
+          {data.content && <p className="mt-5 whitespace-pre-wrap break-words text-[0.98rem] leading-8 text-slate-650 sm:text-base">{data.content}</p>}
+
+          {data.post_type === "link" && data.link_url && (
+            <a href={data.link_url} target="_blank" rel="noreferrer" className="mt-6 flex items-center gap-4 rounded-[18px] border border-slate-200 bg-slate-50 p-4 transition hover:border-violet-300 hover:bg-violet-50/40 sm:p-5">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-violet-700 ring-1 ring-slate-200"><LinkIcon /></span>
+              <span className="min-w-0 flex-1"><strong className="block break-all text-sm text-slate-900 sm:text-base">{data.link_url}</strong><span className="mt-1 block text-xs font-medium text-slate-400">Open external link</span></span>
+            </a>
+          )}
+
+          {data.post_type === "poll" && <PollCard postId={postId} />}
+
+          {data.image_url && <div className="mt-6 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-100"><img src={data.image_url} alt={data.title} loading="lazy" className="max-h-[680px] w-full object-contain" /></div>}
+
+          <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+            <LikeButton postId={postId} />
+            <span className="yapster-post-action"><CommentIcon /><span>{commentCount}</span><span className="hidden sm:inline">comments</span></span>
+            <button type="button" onClick={() => void handleShare()} className="yapster-post-action"><ShareIcon />Share</button>
+            {shareState && <span role="status" className="rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-extrabold text-violet-700">{shareState}</span>}
+            {user && data.community_id && !isOwnPost && (
+              <button type="button" onClick={() => setReportOpen(true)} className="yapster-post-action hover:text-red-600"><FlagIcon />Report</button>
+            )}
+            <SaveButton postId={postId} />
+          </div>
         </div>
 
-        <h1 className="mt-6 break-words text-3xl font-black leading-[1.16] tracking-[-0.045em] text-slate-950 sm:text-4xl">{data.title}</h1>
-        {data.content && <p className="mt-5 whitespace-pre-wrap break-words text-[0.98rem] leading-8 text-slate-650 sm:text-base">{data.content}</p>}
+        <section className="border-t border-slate-100 bg-slate-50/60 px-4 py-5 sm:px-8 sm:py-7" aria-label="Post comments"><CommentSection postId={postId} communityId={data.community_id} /></section>
+      </article>
 
-        {data.post_type === "link" && data.link_url && (
-          <a href={data.link_url} target="_blank" rel="noreferrer" className="mt-6 flex items-center gap-4 rounded-[18px] border border-slate-200 bg-slate-50 p-4 transition hover:border-violet-300 hover:bg-violet-50/40 sm:p-5">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-violet-700 ring-1 ring-slate-200"><LinkIcon /></span>
-            <span className="min-w-0 flex-1"><strong className="block break-all text-sm text-slate-900 sm:text-base">{data.link_url}</strong><span className="mt-1 block text-xs font-medium text-slate-400">Open external link</span></span>
-          </a>
-        )}
-
-        {data.post_type === "poll" && <PollCard postId={postId} />}
-
-        {data.image_url && <div className="mt-6 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-100"><img src={data.image_url} alt={data.title} loading="lazy" className="max-h-[680px] w-full object-contain" /></div>}
-
-        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
-          <LikeButton postId={postId} />
-          <span className="yapster-post-action"><CommentIcon /><span>{commentCount}</span><span className="hidden sm:inline">comments</span></span>
-          <button type="button" onClick={() => void handleShare()} className="yapster-post-action"><ShareIcon />Share</button>
-          {shareState && <span role="status" className="rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs font-extrabold text-violet-700">{shareState}</span>}
-          <SaveButton postId={postId} />
-        </div>
-      </div>
-
-      <section className="border-t border-slate-100 bg-slate-50/60 px-4 py-5 sm:px-8 sm:py-7" aria-label="Post comments"><CommentSection postId={postId} communityId={data.community_id} /></section>
-    </article>
+      {data.community_id && (
+        <ReportDialog open={reportOpen} communityId={data.community_id} targetType="post" targetId={postId} onClose={() => setReportOpen(false)} />
+      )}
+    </>
   );
 };
