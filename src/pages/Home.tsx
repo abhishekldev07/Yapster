@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCommunities } from "../components/CommunityList";
 import { FeedSort, PostList, TopRange } from "../components/PostList";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../supabase-client";
 
 const feedTabs = [
   { key: "for_you", label: "My communities" },
@@ -24,6 +24,27 @@ const topRanges: { key: TopRange; label: string }[] = [
   { key: "all", label: "All time" },
 ];
 
+interface TrendingCommunity {
+  id: number;
+  name: string;
+  description: string | null;
+  member_count: number;
+  recent_posts: number;
+  recent_comments: number;
+  trend_score: number | string;
+}
+
+const fetchTrendingCommunities = async (): Promise<TrendingCommunity[]> => {
+  const { data, error } = await supabase
+    .from("community_trending")
+    .select("id, name, description, member_count, recent_posts, recent_comments, trend_score")
+    .order("trend_score", { ascending: false })
+    .limit(5);
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as TrendingCommunity[];
+};
+
 const ArrowIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
@@ -33,7 +54,11 @@ export const Home = () => {
   const [feedMode, setFeedMode] = useState<(typeof feedTabs)[number]["key"]>(user ? "for_you" : "discover");
   const [feedSort, setFeedSort] = useState<FeedSort>("hot");
   const [topRange, setTopRange] = useState<TopRange>("week");
-  const { data: communities, error: communitiesError } = useQuery({ queryKey: ["communities"], queryFn: fetchCommunities });
+  const { data: trendingCommunities = [], error: communitiesError } = useQuery<TrendingCommunity[], Error>({
+    queryKey: ["trending-communities"],
+    queryFn: fetchTrendingCommunities,
+    staleTime: 60_000,
+  });
 
   const topRangeLabel = topRanges.find((range) => range.key === topRange)?.label ?? "This week";
 
@@ -86,16 +111,20 @@ export const Home = () => {
 
           <aside className="space-y-5 lg:sticky lg:top-[92px]">
             <section className="yapster-card p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-violet-600">Discover</p><h2 className="mt-1 text-base font-extrabold text-slate-950">Popular communities</h2></div><Link to="/communities" className="text-xs font-bold text-slate-500 hover:text-slate-900">See all</Link></div>
-              {communitiesError ? <p className="mt-4 text-sm leading-6 text-slate-500">Communities are unavailable right now.</p> : communities?.length ? (
+              <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-violet-600">Discover</p><h2 className="mt-1 text-base font-extrabold text-slate-950">Trending communities</h2></div><Link to="/communities" className="text-xs font-bold text-slate-500 hover:text-slate-900">See all</Link></div>
+              {communitiesError ? <p className="mt-4 text-sm leading-6 text-slate-500">Communities are unavailable right now.</p> : trendingCommunities.length ? (
                 <div className="mt-4 divide-y divide-slate-100">
-                  {communities.slice(0, 5).map((community, index) => (
-                    <Link key={community.id} to={`/community/${community.id}`} className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                      <span className="w-5 shrink-0 text-center text-xs font-extrabold text-slate-300">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="yapster-community-initial grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black ring-1 ring-black/5">{community.name.trim().slice(0, 1).toUpperCase() || "Y"}</span>
-                      <span className="min-w-0 flex-1"><strong className="block truncate text-sm font-bold text-slate-800 transition group-hover:text-violet-700">{community.name}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{community.description?.trim() || "Community discussions"}</span></span>
-                    </Link>
-                  ))}
+                  {trendingCommunities.map((community, index) => {
+                    const cleanName = community.name.trim() || "Community";
+                    const recentActivity = Number(community.recent_posts) + Number(community.recent_comments);
+                    return (
+                      <Link key={community.id} to={`/community/${community.id}`} className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                        <span className="w-5 shrink-0 text-center text-xs font-extrabold text-slate-300">{String(index + 1).padStart(2, "0")}</span>
+                        <span className="yapster-community-initial grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black ring-1 ring-black/5">{cleanName.slice(0, 1).toUpperCase() || "Y"}</span>
+                        <span className="min-w-0 flex-1"><strong className="block truncate text-sm font-bold text-slate-800 transition group-hover:text-violet-700">{cleanName}</strong><span className="mt-0.5 block truncate text-xs text-slate-400">{recentActivity > 0 ? `${recentActivity} recent ${recentActivity === 1 ? "activity" : "interactions"} · ${Number(community.member_count)} members` : community.description?.trim() || "Community discussions"}</span></span>
+                      </Link>
+                    );
+                  })}
                 </div>
               ) : <p className="mt-4 text-sm leading-6 text-slate-500">No communities yet. Be the first to start one.</p>}
             </section>
