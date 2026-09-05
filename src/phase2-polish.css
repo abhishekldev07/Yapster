@@ -1,0 +1,89 @@
+/* Phase 2 UI polish. Loaded after the main theme so these safeguards win over utility classes. */
+
+/* Keep field values readable and neutral. Labels/buttons can stay bold, but typed/selected values should not. */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  font-weight: 400 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-weight: 400 !important;
+}
+
+/* Communities hero CTA must stay black-on-white in both themes. */
+.yapster-communities-cta {
+  background: #ffffff !important;
+  color: #111118 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.yapster-communities-cta:hover {
+  background: #f3f3f6 !important;
+  color: #111118 !important;
+}
+
+/* Fill the remaining pastel utility gaps in dark mode so light cards never become washed-out grey panels. */
+html[data-theme="dark"] .bg-orange-50,
+html[data-theme="dark"] [class*="bg-orange-50/"],
+html[data-theme="dark"] .bg-orange-100,
+html[data-theme="dark"] [class*="bg-orange-100/"] {
+  background-color: #2a1a14 !important;
+}
+
+html[data-theme="dark"] .bg-pink-50,
+html[data-theme="dark"] [class*="bg-pink-50/"],
+html[data-theme="dark"] .bg-pink-100,
+html[data-theme="dark"] [class*="bg-pink-100/"] {
+  background-color: #2d1725 !important;
+}
+
+html[data-theme="dark"] .bg-blue-50,
+html[data-theme="dark"] [class*="bg-blue-50/"],
+html[data-theme="dark"] .bg-blue-100,
+html[data-theme="dark"] [class*="bg-blue-100/"] {
+  background-color: #151f35 !important;
+}
+
+html[data-theme="dark"] .bg-sky-50,
+html[data-theme="dark"] [class*="bg-sky-50/"],
+html[data-theme="dark"] .bg-sky-100,
+html[data-theme="dark"] [class*="bg-sky-100/"] {
+  background-color: #142530 !important;
+}
+
+html[data-theme="dark"] .bg-cyan-50,
+html[data-theme="dark"] [class*="bg-cyan-50/"],
+html[data-theme="dark"] .bg-cyan-100,
+html[data-theme="dark"] [class*="bg-cyan-100/"] {
+  background-color: #12272a !important;
+}
+
+html[data-theme="dark"] .bg-green-50,
+html[data-theme="dark"] [class*="bg-green-50/"],
+html[data-theme="dark"] .bg-green-100,
+html[data-theme="dark"] [class*="bg-green-100/"] {
+  background-color: #14271c !important;
+}
+
+html[data-theme="dark"] .border-orange-100,
+html[data-theme="dark"] .border-orange-200,
+html[data-theme="dark"] [class*="border-orange-100/"],
+html[data-theme="dark"] [class*="border-orange-200/"] {
+  border-color: #57301f !important;
+}
+
+html[data-theme="dark"] .text-orange-600,
+html[data-theme="dark"] .text-orange-700,
+html[data-theme="dark"] .text-orange-800,
+html[data-theme="dark"] [class*="text-orange-600/"],
+html[data-theme="dark"] [class*="text-orange-700/"],
+html[data-theme="dark"] [class*="text-orange-800/"] {
+  color: #fb923c !important;
+}
+
+/* Community rules are a warm dark panel, never a light/grey card in dark mode. */
+html[data-theme="dark"] [class*="bg-orange-50/"] {
+  box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.04);
+}

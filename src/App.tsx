@@ -6,9 +6,12 @@ import { PostPage } from "./pages/PostPage";
 import { CreateCommunityPage } from "./pages/CreateCommunityPage";
 import { CommunitiesPage } from "./pages/CommunitiesPage";
 import { CommunityPage } from "./pages/CommunityPage";
+import { CommunityRulesPage } from "./pages/CommunityRulesPage";
+import { CommunitySettingsPage } from "./pages/CommunitySettingsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { SavedPostsPage } from "./pages/SavedPostsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -27,11 +30,14 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreatePostPage />} />
+        <Route path="/saved" element={<SavedPostsPage />} />
         <Route path="/post/:id" element={<PostPage />} />
         <Route path="/community/create" element={<CreateCommunityPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/community/:id/rules" element={<CommunityRulesPage />} />
+        <Route path="/community/:id/settings" element={<CommunitySettingsPage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Home />} />

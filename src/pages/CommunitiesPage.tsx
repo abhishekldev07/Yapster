@@ -27,7 +27,7 @@ export const CommunitiesPage = () => {
 
             <Link
               to="/community/create"
-              className="inline-flex w-fit items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-extrabold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-100"
+              className="yapster-communities-cta inline-flex w-fit items-center justify-center rounded-xl px-4 py-2.5 text-sm font-extrabold transition hover:-translate-y-0.5"
             >
               Create a community
             </Link>
