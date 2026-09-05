@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,17 @@ interface CurrentProfile {
   username: string | null;
   avatar_url: string | null;
 }
+
+type Theme = "light" | "dark";
+
+const getInitialTheme = (): Theme => {
+  if (typeof window === "undefined") return "light";
+
+  const storedTheme = window.localStorage.getItem("yapster-theme");
+  if (storedTheme === "light" || storedTheme === "dark") return storedTheme;
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
 
 const fetchCurrentProfile = async (userId: string): Promise<CurrentProfile | null> => {
   const { data, error } = await supabase
@@ -54,10 +65,30 @@ const UserIcon = () => (
   </svg>
 );
 
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="3.5" />
+    <path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20.1 15.3A8.5 8.5 0 0 1 8.7 3.9 8.5 8.5 0 1 0 20.1 15.3Z" />
+  </svg>
+);
+
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const location = useLocation();
   const { signInWithGitHub, signOut, user } = useAuth();
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem("yapster-theme", theme);
+  }, [theme]);
 
   const { data: currentProfile } = useQuery({
     queryKey: ["profile-navbar", user?.id],
@@ -114,6 +145,16 @@ export const Navbar = () => {
           </Link>
 
           <div className="yapster-navbar__actions">
+            <button
+              type="button"
+              className="yapster-theme-toggle"
+              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            </button>
+
             {user ? (
               <>
                 <Link to="/create" className="yapster-create-button">
