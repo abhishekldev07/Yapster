@@ -40,7 +40,7 @@ export const getOrCreateConversation = async (otherUserId: string): Promise<numb
 };
 
 export const fetchUnreadMessageCount = async (userId: string): Promise<number> => {
-  const [{ data: unread, error }, { data: hidden, error: hiddenError }] = await Promise.all([
+  const [{ data: unread, error }, { data: states, error: stateError }] = await Promise.all([
     supabase
       .from("direct_messages")
       .select("id, conversation_id, created_at")
@@ -48,15 +48,35 @@ export const fetchUnreadMessageCount = async (userId: string): Promise<number> =
       .is("read_at", null),
     supabase
       .from("direct_conversation_states")
-      .select("conversation_id, hidden_at")
+      .select("conversation_id, hidden_at, cleared_at, manually_unread")
       .eq("user_id", userId),
   ]);
   if (error) throw new Error(error.message);
-  if (hiddenError) throw new Error(hiddenError.message);
+  if (stateError) throw new Error(stateError.message);
 
-  const hiddenAt = new Map<number, number>((hidden ?? []).map((row) => [Number(row.conversation_id), new Date(row.hidden_at).getTime()]));
-  return (unread ?? []).filter((message) => {
-    const cutoff = hiddenAt.get(Number(message.conversation_id));
-    return cutoff == null || new Date(message.created_at).getTime() > cutoff;
-  }).length;
+  const stateMap = new Map<number, { cutoff: number | null; manuallyUnread: boolean }>();
+  (states ?? []).forEach((row) => {
+    const hiddenAt = row.hidden_at ? new Date(row.hidden_at).getTime() : null;
+    const clearedAt = row.cleared_at ? new Date(row.cleared_at).getTime() : null;
+    const cutoffValues = [hiddenAt, clearedAt].filter((value): value is number => value != null && Number.isFinite(value));
+    stateMap.set(Number(row.conversation_id), {
+      cutoff: cutoffValues.length ? Math.max(...cutoffValues) : null,
+      manuallyUnread: Boolean(row.manually_unread),
+    });
+  });
+
+  const unreadByConversation = new Map<number, number>();
+  (unread ?? []).forEach((message) => {
+    const conversationId = Number(message.conversation_id);
+    const state = stateMap.get(conversationId);
+    const createdAt = new Date(message.created_at).getTime();
+    if (state?.cutoff != null && createdAt <= state.cutoff) return;
+    unreadByConversation.set(conversationId, (unreadByConversation.get(conversationId) ?? 0) + 1);
+  });
+
+  let total = Array.from(unreadByConversation.values()).reduce((sum, count) => sum + count, 0);
+  stateMap.forEach((state, conversationId) => {
+    if (state.manuallyUnread && !unreadByConversation.has(conversationId)) total += 1;
+  });
+  return total;
 };
