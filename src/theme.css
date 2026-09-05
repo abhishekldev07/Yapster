@@ -96,6 +96,27 @@ html[data-theme="dark"] .yapster-auth-field input {
   background: #111119;
 }
 
+html[data-theme="dark"] .yapster-button--ghost,
+html[data-theme="dark"] .h4up-button--ghost {
+  border-color: var(--y-border-strong);
+  background: #191923;
+  color: #f3f3f7;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .yapster-button--ghost:hover,
+html[data-theme="dark"] .h4up-button--ghost:hover {
+  border-color: #4a4a5b;
+  background: #22222e;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .yapster-navbar .yapster-button--ghost {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
 html[data-theme="dark"] .yapster-post-action {
   border-color: var(--y-border);
   background: #191923;
@@ -124,16 +145,48 @@ html[data-theme="dark"] .bg-white {
   background-color: var(--y-surface) !important;
 }
 
-html[data-theme="dark"] .bg-slate-50 {
+html[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] [class*="bg-slate-50/"] {
   background-color: #191923 !important;
 }
 
-html[data-theme="dark"] .bg-slate-100 {
+html[data-theme="dark"] .bg-slate-100,
+html[data-theme="dark"] [class*="bg-slate-100/"] {
   background-color: #20202b !important;
 }
 
+html[data-theme="dark"] .bg-slate-200,
+html[data-theme="dark"] [class*="bg-slate-200/"] {
+  background-color: #292936 !important;
+}
+
+html[data-theme="dark"] .bg-gray-50,
+html[data-theme="dark"] [class*="bg-gray-50/"] {
+  background-color: #191923 !important;
+}
+
+html[data-theme="dark"] .bg-gray-100,
+html[data-theme="dark"] [class*="bg-gray-100/"] {
+  background-color: #20202b !important;
+}
+
+html[data-theme="dark"] .bg-gray-200,
+html[data-theme="dark"] [class*="bg-gray-200/"] {
+  background-color: #292936 !important;
+}
+
+/* High-opacity white surfaces are content panels, not glassy hero decoration. */
+html[data-theme="dark"] .bg-white\/60,
+html[data-theme="dark"] .bg-white\/70,
+html[data-theme="dark"] .bg-white\/80,
+html[data-theme="dark"] .bg-white\/90,
+html[data-theme="dark"] .bg-white\/95 {
+  background-color: var(--y-surface) !important;
+}
+
 html[data-theme="dark"] .border-slate-100,
-html[data-theme="dark"] .border-slate-200 {
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] [class*="border-slate-200/"] {
   border-color: var(--y-border) !important;
 }
 
@@ -158,11 +211,11 @@ html[data-theme="dark"] .text-slate-500 {
 }
 
 html[data-theme="dark"] .text-slate-400 {
-  color: #7f7f8e !important;
+  color: #858595 !important;
 }
 
 html[data-theme="dark"] .text-slate-300 {
-  color: #666675 !important;
+  color: #6d6d7d !important;
 }
 
 html[data-theme="dark"] .text-violet-600,
@@ -171,19 +224,28 @@ html[data-theme="dark"] .text-violet-800 {
   color: #c5a7ff !important;
 }
 
-html[data-theme="dark"] .bg-violet-50 {
+html[data-theme="dark"] .bg-violet-50,
+html[data-theme="dark"] [class*="bg-violet-50/"] {
   background-color: #241a38 !important;
 }
 
-html[data-theme="dark"] .bg-emerald-50 {
+html[data-theme="dark"] .bg-violet-100,
+html[data-theme="dark"] [class*="bg-violet-100/"] {
+  background-color: #2c2044 !important;
+}
+
+html[data-theme="dark"] .bg-emerald-50,
+html[data-theme="dark"] [class*="bg-emerald-50/"] {
   background-color: #102a22 !important;
 }
 
-html[data-theme="dark"] .bg-amber-50 {
+html[data-theme="dark"] .bg-amber-50,
+html[data-theme="dark"] [class*="bg-amber-50/"] {
   background-color: #2e2411 !important;
 }
 
-html[data-theme="dark"] .bg-red-50 {
+html[data-theme="dark"] .bg-red-50,
+html[data-theme="dark"] [class*="bg-red-50/"] {
   background-color: #32171a !important;
 }
 
@@ -199,11 +261,18 @@ html[data-theme="dark"] textarea::placeholder {
 }
 
 html[data-theme="dark"] .hover\:bg-slate-50:hover,
-html[data-theme="dark"] .hover\:bg-slate-100:hover {
+html[data-theme="dark"] .hover\:bg-slate-100:hover,
+html[data-theme="dark"] .hover\:bg-white:hover {
   background-color: #22222e !important;
 }
 
-html[data-theme="dark"] .hover\:text-slate-900:hover {
+html[data-theme="dark"] .focus\:bg-white:focus {
+  background-color: #111119 !important;
+}
+
+html[data-theme="dark"] .hover\:text-slate-900:hover,
+html[data-theme="dark"] .hover\:text-slate-800:hover,
+html[data-theme="dark"] .hover\:text-slate-700:hover {
   color: #ffffff !important;
 }
 

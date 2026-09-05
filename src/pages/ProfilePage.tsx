@@ -152,10 +152,6 @@ export const ProfilePage = () => {
             <div className="absolute -left-20 -top-28 h-80 w-80 rounded-full bg-orange-500/15 blur-3xl" />
             <div className="absolute left-1/3 -top-40 h-96 w-96 rounded-full bg-pink-600/15 blur-3xl" />
             <div className="absolute -right-16 -top-24 h-80 w-80 rounded-full bg-violet-600/25 blur-3xl" />
-            <div className="absolute right-5 top-5 flex items-center gap-2 text-white/30">
-              <img src="/yapster-mark.svg" alt="" className="h-8 w-8 opacity-80" />
-              <span className="text-xs font-extrabold uppercase tracking-[0.15em]">Profile</span>
-            </div>
           </div>
 
           <div className="relative px-5 pb-6 sm:px-7 sm:pb-7">
