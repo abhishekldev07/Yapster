@@ -1,0 +1,231 @@
+/* Yapster theme layer: loaded after Tailwind/index.css so theme overrides stay predictable. */
+
+.yapster-hero-cta {
+  background: #ffffff !important;
+  color: #111118 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.yapster-hero-cta:hover {
+  background: #f3f3f6 !important;
+  color: #111118 !important;
+}
+
+.yapster-community-initial {
+  color: #5b21b6 !important;
+}
+
+.yapster-theme-toggle {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d7d7df;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.yapster-theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.11);
+  color: #ffffff;
+}
+
+.yapster-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-theme="dark"] {
+  --y-bg: #0d0d14;
+  --y-surface: #15151e;
+  --y-surface-muted: #1c1c27;
+  --y-border: #292936;
+  --y-border-strong: #373746;
+  --y-text: #f4f4f7;
+  --y-text-soft: #aaaab7;
+  --y-text-faint: #777786;
+  --y-accent-soft: #251a3c;
+  --y-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.18), 0 10px 28px rgba(0, 0, 0, 0.16);
+  --y-shadow-md: 0 20px 56px rgba(0, 0, 0, 0.34);
+  color-scheme: dark;
+}
+
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  background-color: var(--y-bg);
+  color: var(--y-text);
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 50% -16%, rgba(118, 38, 245, 0.14), transparent 36rem),
+    radial-gradient(circle at 90% 24%, rgba(240, 6, 118, 0.055), transparent 28rem),
+    var(--y-bg);
+}
+
+html[data-theme="dark"] .yapster-card,
+html[data-theme="dark"] .yapster-post-card,
+html[data-theme="dark"] .yapster-account-menu,
+html[data-theme="dark"] .yapster-auth-card {
+  background: var(--y-surface);
+  border-color: var(--y-border);
+}
+
+html[data-theme="dark"] .yapster-auth-card {
+  background: rgba(21, 21, 30, 0.97);
+}
+
+html[data-theme="dark"] .yapster-auth-field,
+html[data-theme="dark"] .yapster-auth-field input {
+  color: var(--y-text);
+}
+
+html[data-theme="dark"] .yapster-auth-field input {
+  border-color: var(--y-border-strong);
+  background: #111119;
+}
+
+html[data-theme="dark"] .yapster-post-action {
+  border-color: var(--y-border);
+  background: #191923;
+  color: #b0b0bc;
+}
+
+html[data-theme="dark"] .yapster-post-action:hover {
+  border-color: #454557;
+  background: #20202b;
+  color: #f2f2f6;
+}
+
+html[data-theme="dark"] .yapster-community-chip {
+  background: #281c41;
+  color: #cbb0ff;
+}
+
+html[data-theme="dark"] .yapster-community-initial {
+  background: linear-gradient(145deg, #3a241d, #3a1830 52%, #251b46) !important;
+  color: #e2ceff !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
+}
+
+/* Tailwind utility compatibility for screens still using utility-first Phase 1 markup. */
+html[data-theme="dark"] .bg-white {
+  background-color: var(--y-surface) !important;
+}
+
+html[data-theme="dark"] .bg-slate-50 {
+  background-color: #191923 !important;
+}
+
+html[data-theme="dark"] .bg-slate-100 {
+  background-color: #20202b !important;
+}
+
+html[data-theme="dark"] .border-slate-100,
+html[data-theme="dark"] .border-slate-200 {
+  border-color: var(--y-border) !important;
+}
+
+html[data-theme="dark"] .border-slate-300 {
+  border-color: var(--y-border-strong) !important;
+}
+
+html[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--y-border) !important;
+}
+
+html[data-theme="dark"] .text-slate-950,
+html[data-theme="dark"] .text-slate-900,
+html[data-theme="dark"] .text-slate-800,
+html[data-theme="dark"] .text-slate-700 {
+  color: #f1f1f5 !important;
+}
+
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-slate-500 {
+  color: #a5a5b2 !important;
+}
+
+html[data-theme="dark"] .text-slate-400 {
+  color: #7f7f8e !important;
+}
+
+html[data-theme="dark"] .text-slate-300 {
+  color: #666675 !important;
+}
+
+html[data-theme="dark"] .text-violet-600,
+html[data-theme="dark"] .text-violet-700,
+html[data-theme="dark"] .text-violet-800 {
+  color: #c5a7ff !important;
+}
+
+html[data-theme="dark"] .bg-violet-50 {
+  background-color: #241a38 !important;
+}
+
+html[data-theme="dark"] .bg-emerald-50 {
+  background-color: #102a22 !important;
+}
+
+html[data-theme="dark"] .bg-amber-50 {
+  background-color: #2e2411 !important;
+}
+
+html[data-theme="dark"] .bg-red-50 {
+  background-color: #32171a !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  color: var(--y-text);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #737382;
+}
+
+html[data-theme="dark"] .hover\:bg-slate-50:hover,
+html[data-theme="dark"] .hover\:bg-slate-100:hover {
+  background-color: #22222e !important;
+}
+
+html[data-theme="dark"] .hover\:text-slate-900:hover {
+  color: #ffffff !important;
+}
+
+/* Keep intentionally light controls legible inside the dark branded hero. */
+html[data-theme="dark"] .yapster-feed-hero .bg-white {
+  background-color: #ffffff !important;
+}
+
+html[data-theme="dark"] .yapster-feed-hero .bg-white.text-slate-950,
+html[data-theme="dark"] .yapster-hero-cta {
+  color: #111118 !important;
+}
+
+html[data-theme="dark"] .yapster-hero-cta {
+  background: #ffffff !important;
+}
+
+@media (max-width: 760px) {
+  .yapster-theme-toggle {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+    border-radius: 10px;
+  }
+}
