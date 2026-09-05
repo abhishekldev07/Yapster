@@ -7,13 +7,20 @@ export const AuthLayout = ({
   title: string;
   children: React.ReactNode;
 }) => (
-  <main className="mx-auto flex min-h-[calc(100vh-9rem)] max-w-md items-center justify-center py-10">
-    <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <Link to="/" className="flex items-center justify-center text-2xl font-extrabold tracking-tight text-slate-900">
-        <span className="text-emerald-700">H4</span>UP
-      </Link>
-      <h1 className="mt-6 text-center text-2xl font-bold text-slate-900">{title}</h1>
-      <div className="mt-6">{children}</div>
+  <main className="yapster-auth-shell">
+    <section className="yapster-auth-card">
+      <div className="yapster-auth-card__accent" />
+      <div className="yapster-auth-card__body">
+        <Link to="/" className="yapster-auth-logo" aria-label="Yapster home">
+          <img src="/yapster-mark.svg" alt="" />
+          <span>Yapster</span>
+        </Link>
+        <h1 className="mt-7 text-center text-2xl font-extrabold text-slate-950">{title}</h1>
+        <p className="mx-auto mt-2 max-w-sm text-center text-sm leading-6 text-slate-500">
+          Join conversations around the communities and ideas you care about.
+        </p>
+        <div className="mt-7">{children}</div>
+      </div>
     </section>
   </main>
 );
@@ -22,14 +29,15 @@ export const AuthField = ({
   label,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
-  <label className="block text-sm font-semibold text-slate-700">
+  <label className="yapster-auth-field">
     {label}
-    <input
-      {...props}
-      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-normal text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-    />
+    <input {...props} />
   </label>
 );
 
 export const AuthError = ({ message }: { message: string | null }) =>
-  message ? <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{message}</p> : null;
+  message ? (
+    <p role="alert" className="rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+      {message}
+    </p>
+  ) : null;

@@ -86,7 +86,7 @@ const fetchSearchResults = async (searchTerm: string): Promise<SearchResults> =>
     )
   );
 
-  let memberCounts: Record<number, number> = {};
+  const memberCounts: Record<number, number> = {};
   if (communityIds.length > 0) {
     const { data: membershipRows, error: memberError } = await supabase
       .from("community_members")
@@ -130,6 +130,13 @@ const fetchSearchResults = async (searchTerm: string): Promise<SearchResults> =>
 
   return { posts, communities, people, memberCounts };
 };
+
+const SearchIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.9">
+    <circle cx="10.8" cy="10.8" r="6.5" />
+    <path d="m16 16 4.2 4.2" strokeLinecap="round" />
+  </svg>
+);
 
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -180,33 +187,32 @@ export const SearchPage = () => {
   const renderSkeleton = () => (
     <div className="space-y-4">
       {[0, 1, 2].map((item) => (
-        <div key={item} className="animate-pulse rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="h-4 w-28 rounded bg-slate-200" />
-          <div className="mt-3 h-6 w-2/3 rounded bg-slate-200" />
-          <div className="mt-3 h-4 w-full rounded bg-slate-200" />
-          <div className="mt-2 h-4 w-5/6 rounded bg-slate-200" />
+        <div key={item} className="yapster-card animate-pulse p-5">
+          <div className="h-3 w-28 rounded bg-slate-100" />
+          <div className="mt-3 h-6 w-2/3 rounded bg-slate-100" />
+          <div className="mt-3 h-3 w-full rounded bg-slate-100" />
+          <div className="mt-2 h-3 w-5/6 rounded bg-slate-100" />
         </div>
       ))}
     </div>
   );
 
   const renderNeutralState = () => (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="11" cy="11" r="6" />
-          <path d="M16 16L21 21" strokeLinecap="round" />
-        </svg>
+    <div className="yapster-card p-9 text-center sm:p-12">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-violet-50 text-violet-700">
+        <SearchIcon className="h-6 w-6" />
       </div>
-      <h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Search H4UP</h2>
-      <p className="mt-3 text-sm leading-6 text-slate-600">Find communities, people, and discussions.</p>
+      <h2 className="mt-5 text-2xl font-black tracking-[-0.035em] text-slate-950">Search all of Yapster</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+        Find conversations, communities, and people without digging through separate pages.
+      </p>
     </div>
   );
 
   const renderEmptyState = () => (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">Nothing found</h2>
-      <p className="mt-3 text-sm leading-6 text-slate-600">Try a different search.</p>
+    <div className="yapster-card p-9 text-center sm:p-12">
+      <h2 className="text-2xl font-black tracking-[-0.035em] text-slate-950">No results for “{trimmedQuery}”</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-500">Try a broader term or a different spelling.</p>
     </div>
   );
 
@@ -214,39 +220,37 @@ export const SearchPage = () => {
     if (!visibleResults.posts.length) return null;
 
     return (
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">Posts</h3>
-          <span className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">{visibleResults.posts.length}</span>
+          <h3 className="text-lg font-extrabold text-slate-950">Posts</h3>
+          <span className="text-xs font-extrabold text-slate-400">{visibleResults.posts.length}</span>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {visibleResults.posts.map((post) => (
-            <article key={post.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <article key={post.id} className="yapster-card overflow-hidden transition hover:border-slate-300">
               <Link to={`/post/${post.id}`} className="block p-4 sm:p-5">
-                <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-400">
                   {post.community_name && (
-                    <span className="rounded-full bg-emerald-50 px-2 py-1 font-semibold uppercase tracking-[0.08em] text-emerald-800">
-                      {post.community_name}
-                    </span>
+                    <span className="yapster-community-chip">{post.community_name}</span>
                   )}
-                  <span>•</span>
                   <span>{new Date(post.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
                 </div>
 
-                <h4 className="mt-3 text-xl font-semibold text-slate-900 hover:text-emerald-800">{post.title}</h4>
+                <h4 className="mt-3 text-lg font-extrabold leading-snug text-slate-950 transition hover:text-violet-800 sm:text-xl">{post.title}</h4>
 
                 {post.content && (
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {post.content.length > 220 ? `${post.content.slice(0, 220)}...` : post.content}
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {post.content.length > 220 ? `${post.content.slice(0, 220)}…` : post.content}
                   </p>
                 )}
 
                 {post.image_url && (
                   <img
                     src={post.image_url}
-                    alt={post.title}
-                    className="mt-4 h-44 w-full rounded-xl border border-slate-200 object-cover"
+                    alt=""
+                    className="mt-4 h-44 w-full rounded-xl border border-slate-200 object-cover sm:h-52"
+                    loading="lazy"
                   />
                 )}
               </Link>
@@ -261,51 +265,40 @@ export const SearchPage = () => {
     if (!visibleResults.communities.length) return null;
 
     return (
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">Communities</h3>
-          <span className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">{visibleResults.communities.length}</span>
+          <h3 className="text-lg font-extrabold text-slate-950">Communities</h3>
+          <span className="text-xs font-extrabold text-slate-400">{visibleResults.communities.length}</span>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {visibleResults.communities.map((community) => {
             const isOwner = community.created_by === user?.id;
             const isMember = !isOwner && Boolean(memberships[community.id]);
             const memberCount = community.member_count ?? 0;
 
-            let buttonLabel = "Join";
-            if (isOwner) buttonLabel = "Admin";
-            else if (isMember) buttonLabel = "Joined";
-
             return (
-              <article key={community.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <Link to={`/community/${community.id}`} className="text-lg font-semibold text-slate-900 hover:text-emerald-800">
-                    {community.name}
-                  </Link>
-                  {!isOwner && (
-                    <button
-                      type="button"
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                        isMember ? "border border-slate-200 bg-slate-100 text-slate-700" : "bg-emerald-700 text-white"
-                      }`}
-                    >
-                      {buttonLabel}
-                    </button>
-                  )}
+              <Link key={community.id} to={`/community/${community.id}`} className="yapster-card group block p-4 transition hover:border-slate-300">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black text-violet-800 ring-1 ring-black/5">
+                    {community.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="truncate text-base font-extrabold text-slate-950 transition group-hover:text-violet-700">{community.name}</h4>
+                      {(isOwner || isMember) && (
+                        <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-violet-700">
+                          {isOwner ? "Admin" : "Joined"}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs font-semibold text-slate-400">{memberCount} {memberCount === 1 ? "member" : "members"}</p>
+                  </div>
                 </div>
-
-                <p className="mt-3 text-sm leading-6 text-slate-600">
+                <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
                   {community.description || "A community for new conversations and shared interests."}
                 </p>
-
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-                  <span>{memberCount} members</span>
-                  <Link to={`/community/${community.id}`} className="font-semibold text-emerald-700 hover:text-emerald-800">
-                    View community
-                  </Link>
-                </div>
-              </article>
+              </Link>
             );
           })}
         </div>
@@ -317,13 +310,13 @@ export const SearchPage = () => {
     if (!visibleResults.people.length) return null;
 
     return (
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">People</h3>
-          <span className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">{visibleResults.people.length}</span>
+          <h3 className="text-lg font-extrabold text-slate-950">People</h3>
+          <span className="text-xs font-extrabold text-slate-400">{visibleResults.people.length}</span>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {visibleResults.people.map((person) => {
             const username = person.username || "unknown";
             const displayName = person.display_name || username;
@@ -332,22 +325,22 @@ export const SearchPage = () => {
               <Link
                 key={person.id}
                 to={`/profile/${encodeURIComponent(username)}`}
-                className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-emerald-200"
+                className="yapster-card flex items-start gap-3 p-4 transition hover:border-slate-300"
               >
                 {person.avatar_url ? (
-                  <img src={person.avatar_url} alt={displayName} className="h-12 w-12 rounded-full object-cover border border-slate-200" />
+                  <img src={person.avatar_url} alt="" className="h-11 w-11 rounded-xl border border-slate-200 object-cover" />
                 ) : (
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-bold text-slate-700">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-slate-100 text-sm font-black text-slate-600 ring-1 ring-slate-200">
                     {(displayName || "U").slice(0, 1).toUpperCase()}
                   </div>
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-base font-semibold text-slate-900">{displayName}</h4>
-                  <p className="mt-1 text-sm text-slate-500">@{username}</p>
+                  <h4 className="truncate text-base font-extrabold text-slate-950">{displayName}</h4>
+                  <p className="mt-0.5 text-xs font-semibold text-violet-700">@{username}</p>
                   {person.bio && (
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {person.bio.length > 150 ? `${person.bio.slice(0, 150)}...` : person.bio}
+                    <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-500">
+                      {person.bio}
                     </p>
                   )}
                 </div>
@@ -360,61 +353,60 @@ export const SearchPage = () => {
   };
 
   return (
-    <div className="pt-6 pb-12">
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">Search</p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">SEARCH</h1>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Find communities, people, and discussions.</p>
+    <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
+      <div className="mx-auto max-w-[1040px] px-4 sm:px-6">
+        <section className="overflow-hidden rounded-[22px] border border-[#22222c] bg-[#0e0e15] shadow-sm">
+          <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
+          <div className="p-5 sm:p-7">
+            <div className="flex items-center gap-3">
+              <img src="/yapster-mark.svg" alt="" className="h-9 w-9" />
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/40">Yapster search</p>
+                <h1 className="mt-0.5 text-2xl font-black tracking-[-0.04em] text-white sm:text-3xl">Find the conversation.</h1>
+              </div>
+            </div>
+
+            <div className="relative mt-5">
+              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-white/35">
+                <SearchIcon />
+              </span>
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search posts, communities, and people"
+                aria-label="Search Yapster"
+                autoFocus
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.075] py-3.5 pl-12 pr-4 text-base font-medium text-white placeholder:font-normal placeholder:text-white/30 outline-none transition focus:border-violet-400/60 focus:bg-white/10 focus:ring-4 focus:ring-violet-500/10"
+              />
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
+                      isActive ? "bg-white text-slate-950" : "bg-white/[0.05] text-white/45 hover:bg-white/[0.08] hover:text-white/70"
+                    }`}
+                    aria-pressed={isActive}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          <div className="relative mt-5">
-            <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="6" />
-                <path d="M16 16L21 21" strokeLinecap="round" />
-              </svg>
-            </span>
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search H4UP..."
-              aria-label="Search H4UP"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 text-base text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-            />
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
-                  }`}
-                  aria-pressed={isActive}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        </section>
 
         <div className="mt-6">
           {!hasSearchQuery && renderNeutralState()}
           {hasSearchQuery && isLoading && renderSkeleton()}
           {hasSearchQuery && !isLoading && error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700 shadow-sm">
               Unable to complete the search. Please try again.
             </div>
           )}
@@ -428,6 +420,6 @@ export const SearchPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };

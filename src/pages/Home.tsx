@@ -6,111 +6,180 @@ import { PostList } from "../components/PostList";
 import { useAuth } from "../context/AuthContext";
 
 const feedTabs = [
-  { key: "for_you", label: "For You" },
+  { key: "for_you", label: "My communities" },
   { key: "discover", label: "Discover" },
 ] as const;
 
+const ArrowIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2" aria-hidden="true">
+    <path d="M5 12h14M14 7l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const Home = () => {
   const { user } = useAuth();
-  const [feedMode, setFeedMode] = useState<(typeof feedTabs)[number]["key"]>("discover");
+  const [feedMode, setFeedMode] = useState<(typeof feedTabs)[number]["key"]>(user ? "for_you" : "discover");
   const { data: communities, error: communitiesError } = useQuery({
     queryKey: ["communities"],
     queryFn: fetchCommunities,
   });
 
   return (
-    <div className="pt-6 pb-12">
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="lg:grid lg:grid-cols-[minmax(0,760px)_300px] lg:gap-8 lg:items-start">
-          <main className="w-full">
-            <div className="mb-5 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm sm:p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
-                    H4UP feed
-                  </p>
-                  <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-                    Your feed
+    <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
+      <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
+        <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,760px)_300px] xl:gap-9">
+          <section className="min-w-0">
+            <div className="yapster-feed-hero p-5 sm:p-6">
+              <div className="relative z-10 flex items-start justify-between gap-6">
+                <div className="max-w-[580px]">
+                  <h1 className="max-w-xl text-2xl font-extrabold leading-tight tracking-[-0.045em] text-white sm:text-[2rem]">
+                    {user ? "Your communities, one conversation at a time." : "Find your people. Join the conversation."}
                   </h1>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-[0.95rem]">
+                    {user
+                      ? "Catch up on discussions from the communities you joined, or jump outside your bubble and discover something new."
+                      : "Interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}
+                  </p>
+                </div>
+
+                <div className="hidden shrink-0 sm:block">
+                  <Link
+                    to={user ? "/create" : "/signup"}
+                    className="yapster-hero-cta inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold transition hover:-translate-y-0.5"
+                  >
+                    {user ? "Create post" : "Join Yapster"}
+                    <ArrowIcon />
+                  </Link>
                 </div>
               </div>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
-                Discover community discussions, recommendations, questions, and updates from the topics you care about most.
-              </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                {feedTabs.map((tab) => {
-                  const isActive = feedMode === tab.key;
+              <div className="relative z-10 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.055] p-1">
+                  {feedTabs.map((tab) => {
+                    const isActive = feedMode === tab.key;
+                    const requiresLogin = tab.key === "for_you" && !user;
 
-                  return (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => setFeedMode(tab.key)}
-                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-                        isActive
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
-                      }`}
-                      aria-pressed={isActive}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => !requiresLogin && setFeedMode(tab.key)}
+                        disabled={requiresLogin}
+                        className={`rounded-lg px-3 py-2 text-xs font-bold transition sm:text-sm ${
+                          isActive
+                            ? "bg-white text-slate-950 shadow-sm"
+                            : requiresLogin
+                              ? "cursor-not-allowed text-white/25"
+                              : "text-white/55 hover:text-white"
+                        }`}
+                        aria-pressed={isActive}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {!user && (
+                  <span className="text-xs font-medium text-white/40">
+                    Sign in to build a personalized community feed.
+                  </span>
+                )}
               </div>
+            </div>
 
-              <p className="mt-3 text-xs text-slate-500">
-                <span className="font-semibold text-slate-700">For You</span> = communities you&apos;ve joined
-                <span className="mx-2 text-slate-300">•</span>
-                <span className="font-semibold text-slate-700">Discover</span> = communities you may want to explore
-              </p>
+            <div className="mb-4 mt-6 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-950">
+                  {feedMode === "for_you" ? "From your communities" : "Worth discovering"}
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {feedMode === "for_you" ? "Latest discussions from spaces you belong to." : "Fresh conversations from around Yapster."}
+                </p>
+              </div>
+              <Link to="/communities" className="text-xs font-bold text-violet-700 hover:text-violet-800 sm:text-sm">
+                Browse communities
+              </Link>
             </div>
 
             <PostList mode={feedMode} userId={user?.id ?? null} />
-          </main>
+          </section>
 
-          <aside className="mt-6 lg:mt-0">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-slate-900">
-                  Popular communities
-                </h2>
+          <aside className="space-y-5 lg:sticky lg:top-[92px]">
+            <section className="yapster-card p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-violet-600">
+                    Discover
+                  </p>
+                  <h2 className="mt-1 text-base font-extrabold text-slate-950">
+                    Popular communities
+                  </h2>
+                </div>
+                <Link to="/communities" className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  See all
+                </Link>
               </div>
 
               {communitiesError ? (
-                <p className="mt-3 text-sm text-slate-500">
+                <p className="mt-4 text-sm leading-6 text-slate-500">
                   Communities are unavailable right now.
                 </p>
               ) : communities?.length ? (
-                <ul className="mt-4 space-y-3">
-                  {communities.slice(0, 6).map((community) => (
-                    <li key={community.id}>
-                      <Link
-                        to={`/community/${community.id}`}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors hover:border-emerald-200 hover:bg-emerald-50 focus-visible:border-emerald-400 focus-visible:bg-emerald-50"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800">
-                            {community.name.slice(0, 1).toUpperCase()}
-                          </div>
-                          <span className="text-sm font-medium text-slate-700">
-                            {community.name}
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
+                <div className="mt-4 divide-y divide-slate-100">
+                  {communities.slice(0, 5).map((community, index) => (
+                    <Link
+                      key={community.id}
+                      to={`/community/${community.id}`}
+                      className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+                    >
+                      <span className="w-5 shrink-0 text-center text-xs font-extrabold text-slate-300">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="yapster-community-initial grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black ring-1 ring-black/5">
+                        {community.name.trim().slice(0, 1).toUpperCase() || "Y"}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <strong className="block truncate text-sm font-bold text-slate-800 transition group-hover:text-violet-700">
+                          {community.name}
+                        </strong>
+                        <span className="mt-0.5 block truncate text-xs text-slate-400">
+                          {community.description?.trim() || "Community discussions"}
+                        </span>
+                      </span>
+                    </Link>
                   ))}
-                </ul>
+                </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">
-                  No communities yet. Start one today.
+                <p className="mt-4 text-sm leading-6 text-slate-500">
+                  No communities yet. Be the first to start one.
                 </p>
               )}
-            </div>
+            </section>
+
+            <section className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm">
+              <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
+              <div className="p-5">
+                <h2 className="text-base font-extrabold text-slate-950">Build your corner of Yapster</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Start a community around a topic, hobby, place, profession, or idea people can gather around.
+                </p>
+                <Link
+                  to={user ? "/community/create" : "/signup"}
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-violet-700 hover:text-violet-800"
+                >
+                  {user ? "Create a community" : "Create an account"}
+                  <ArrowIcon />
+                </Link>
+              </div>
+            </section>
+
+            <p className="px-1 text-[11px] leading-5 text-slate-400">
+              Yapster · Communities worth talking about
+            </p>
           </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 };

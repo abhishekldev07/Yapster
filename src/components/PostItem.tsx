@@ -6,6 +6,24 @@ interface Props {
   post: Post;
 }
 
+const CommentIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M20 11.5a7.7 7.7 0 0 1-8 7.5 8.8 8.8 0 0 1-3-.5L4 20l1.4-4A7.3 7.3 0 0 1 4 11.5 7.7 7.7 0 0 1 12 4a7.7 7.7 0 0 1 8 7.5Z" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M8 12 16.5 5M12.5 5h4v4M18 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const SaveIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M7 4.5h10a1 1 0 0 1 1 1V20l-6-3.5L6 20V5.5a1 1 0 0 1 1-1Z" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const PostItem = ({ post }: Props) => {
   const formattedDate = post.created_at
     ? new Date(post.created_at).toLocaleDateString(undefined, {
@@ -15,59 +33,76 @@ export const PostItem = ({ post }: Props) => {
     : "Recently";
 
   const communityName = post.community_name?.trim() || "Community";
-  const authorName =
-    post.author_username?.trim() || post.author_name?.trim() || "Member";
-  const profileHref = `/profile/${encodeURIComponent(authorName)}`;
+  const authorName = post.author_username?.trim() || post.author_name?.trim() || null;
   const previewText = post.content?.trim();
+  const communityHref = post.community_id ? `/community/${post.community_id}` : "/communities";
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100">
+    <article className="yapster-post-card">
       <div className="p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+          <Link
+            to={communityHref}
+            className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black text-violet-800 ring-1 ring-black/5"
+            aria-label={`Open ${communityName}`}
+          >
             {post.community_avatar_url ? (
               <img
                 src={post.community_avatar_url}
-                alt={`${communityName} community icon`}
+                alt=""
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-xs font-bold text-slate-700">
-                {communityName.slice(0, 1).toUpperCase()}
-              </span>
+              communityName.slice(0, 1).toUpperCase()
             )}
+          </Link>
+
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
+              <Link
+                to={communityHref}
+                className="truncate font-extrabold text-slate-800 transition hover:text-violet-700"
+              >
+                {communityName}
+              </Link>
+              <span aria-hidden="true">•</span>
+              <span>{formattedDate}</span>
+              {authorName && (
+                <>
+                  <span aria-hidden="true">•</span>
+                  <Link
+                    to={`/profile/${encodeURIComponent(authorName)}`}
+                    className="font-semibold text-slate-500 hover:text-violet-700"
+                  >
+                    @{authorName}
+                  </Link>
+                </>
+              )}
+            </div>
+            <span className="mt-1 inline-flex text-[10px] font-bold uppercase tracking-[0.12em] text-slate-300">
+              Discussion
+            </span>
           </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
-              <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-800">
-                {communityName}
-              </span>
-              <span>•</span>
-              <Link
-                to={profileHref}
-                className="font-semibold text-slate-700 transition-colors hover:text-emerald-800"
-              >
-                {authorName}
-              </Link>
-              <span>•</span>
-              <span>{formattedDate}</span>
-            </div>
-          </div>
+          <button
+            type="button"
+            aria-label="More post options"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border-0 bg-transparent text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          >
+            ⋯
+          </button>
         </div>
 
         <Link to={`/post/${post.id}`} className="mt-4 block">
-          <h2 className="break-words text-xl font-semibold leading-snug text-slate-900 transition-colors hover:text-emerald-800 sm:text-[1.4rem]">
+          <h2 className="break-words text-[1.18rem] font-extrabold leading-[1.35] tracking-[-0.025em] text-slate-950 transition hover:text-violet-800 sm:text-[1.32rem]">
             {post.title}
           </h2>
         </Link>
 
         {previewText && (
-          <Link to={`/post/${post.id}`} className="mt-3 block">
+          <Link to={`/post/${post.id}`} className="mt-2.5 block">
             <p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
-              {previewText.length > 260
-                ? `${previewText.slice(0, 260)}...`
-                : previewText}
+              {previewText.length > 300 ? `${previewText.slice(0, 300)}…` : previewText}
             </p>
           </Link>
         )}
@@ -75,52 +110,47 @@ export const PostItem = ({ post }: Props) => {
         {post.image_url && (
           <Link
             to={`/post/${post.id}`}
-            className="mt-4 block overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+            className="mt-4 block overflow-hidden rounded-[15px] border border-slate-200 bg-slate-100"
           >
             <img
               src={post.image_url}
               alt={post.title}
-              className="h-64 w-full object-cover sm:h-72"
+              className="max-h-[520px] w-full object-cover"
+              loading="lazy"
             />
           </Link>
         )}
       </div>
 
-      <div className="border-t border-slate-200 bg-slate-50/80 px-3 py-3 sm:px-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <LikeButton postId={post.id} />
-          </div>
+      <div className="border-t border-[var(--y-border)] bg-[var(--y-surface)] px-3 py-2.5 sm:px-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <LikeButton postId={post.id} />
 
-          <div className="flex items-center gap-2">
-            <Link
-              to={`/post/${post.id}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
-            >
-              <span aria-hidden="true">💬</span>
-              <span>{post.comment_count ?? 0}</span>
-            </Link>
+          <Link to={`/post/${post.id}`} className="yapster-post-action">
+            <CommentIcon />
+            <span>{post.comment_count ?? 0}</span>
+            <span className="hidden sm:inline">comments</span>
+          </Link>
 
-            <button
-              type="button"
-              disabled
-              aria-label="Share post"
-              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-400"
-            >
-              <span aria-hidden="true">↗</span>
-              Share
-            </button>
+          <button
+            type="button"
+            disabled
+            title="Sharing is coming in Phase 2"
+            className="yapster-post-action cursor-not-allowed opacity-45"
+          >
+            <ShareIcon />
+            <span className="hidden sm:inline">Share</span>
+          </button>
 
-            <button
-              type="button"
-              disabled
-              aria-label="Save post"
-              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-400"
-            >
-              <span aria-hidden="true">★</span>
-              Save
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled
+            title="Saving posts is coming in Phase 2"
+            className="yapster-post-action ml-auto cursor-not-allowed opacity-45"
+          >
+            <SaveIcon />
+            <span className="hidden sm:inline">Save</span>
+          </button>
         </div>
       </div>
     </article>

@@ -54,17 +54,17 @@ export const fetchPosts = async (): Promise<Post[]> => {
   return ((countData ?? []) as PostCount[]).map((rpcPost) => {
     const postMetadata = communityByPostId.get(Number(rpcPost.id));
     return {
-    id: Number(rpcPost.id),
-    title: rpcPost.title ?? "",
-    content: rpcPost.content ?? "",
-    created_at: rpcPost.created_at ?? new Date().toISOString(),
-    image_url: rpcPost.image_url ?? "",
-    avatar_url: rpcPost.user_avatar_url ?? undefined,
-    community_id: postMetadata?.community_id != null ? Number(postMetadata.community_id) : undefined,
-    community_name: postMetadata?.communities?.name ?? undefined,
-    community_avatar_url: undefined,
-    like_count: rpcPost.like_count ?? 0,
-    comment_count: rpcPost.comment_count ?? 0,
+      id: Number(rpcPost.id),
+      title: rpcPost.title ?? "",
+      content: rpcPost.content ?? "",
+      created_at: rpcPost.created_at ?? new Date().toISOString(),
+      image_url: rpcPost.image_url ?? "",
+      avatar_url: rpcPost.user_avatar_url ?? undefined,
+      community_id: postMetadata?.community_id != null ? Number(postMetadata.community_id) : undefined,
+      community_name: postMetadata?.communities?.name ?? undefined,
+      community_avatar_url: undefined,
+      like_count: rpcPost.like_count ?? 0,
+      comment_count: rpcPost.comment_count ?? 0,
     };
   });
 };
@@ -104,6 +104,12 @@ const fetchOwnedCommunityIds = async (userId: string): Promise<Set<number>> => {
 
   return owned;
 };
+
+const EmptyIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M5 6.5h14M5 11.5h10M5 16.5h7" strokeLinecap="round" />
+  </svg>
+);
 
 export const PostList = ({ mode = "discover", userId }: Props) => {
   const { data, error, isLoading } = useQuery<Post[], Error>({
@@ -145,44 +151,53 @@ export const PostList = ({ mode = "discover", userId }: Props) => {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
-        Loading discussions...
+      <div className="space-y-4" aria-label="Loading discussions">
+        {[0, 1].map((item) => (
+          <div key={item} className="yapster-card animate-pulse p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-slate-100" />
+              <div className="space-y-2">
+                <div className="h-3 w-32 rounded bg-slate-100" />
+                <div className="h-2.5 w-20 rounded bg-slate-100" />
+              </div>
+            </div>
+            <div className="mt-5 h-5 w-4/5 rounded bg-slate-100" />
+            <div className="mt-3 h-3 w-full rounded bg-slate-100" />
+            <div className="mt-2 h-3 w-3/4 rounded bg-slate-100" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        Unable to load posts. Please try again.
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm font-medium text-red-700 shadow-sm">
+        Unable to load discussions right now. Please try again.
       </div>
     );
   }
 
   if (!filteredPosts.length) {
-    if (mode === "for_you") {
-      return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-900">Your feed is quiet</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Join a few communities to start seeing posts here.
-          </p>
-          <Link
-            to="/communities"
-            className="mt-5 inline-flex items-center justify-center rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-800"
-          >
+    const forYou = mode === "for_you";
+    return (
+      <div className="yapster-card p-9 text-center">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-50 text-violet-700">
+          <EmptyIcon />
+        </div>
+        <h3 className="mt-4 text-xl font-extrabold text-slate-950">
+          {forYou ? "Your feed is quiet" : "Nothing to discover yet"}
+        </h3>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+          {forYou
+            ? "Join a few communities and their latest discussions will show up here."
+            : "New discussions will appear here as people start posting around Yapster."}
+        </p>
+        {forYou && (
+          <Link to="/communities" className="yapster-button yapster-button--primary mt-5">
             Browse communities
           </Link>
-        </div>
-      );
-    }
-
-    return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <h3 className="text-xl font-semibold text-slate-900">Nothing to discover yet</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Check back soon or join a few communities to personalize this feed.
-        </p>
+        )}
       </div>
     );
   }

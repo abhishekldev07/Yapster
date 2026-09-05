@@ -72,15 +72,22 @@ export const SignupPage = () => {
     <AuthLayout title="Create your account">
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthError message={error} />
-        {accountMayExist && <div className="flex gap-3 text-sm font-semibold"><Link to="/login" className="text-emerald-700">Sign in</Link><button type="button" onClick={signInWithGitHub} className="text-emerald-700">Continue with GitHub</button></div>}
+        {accountMayExist && (
+          <div className="flex flex-wrap gap-3 text-sm font-semibold">
+            <Link to="/login" className="text-violet-700 hover:text-violet-800">Sign in</Link>
+            <button type="button" onClick={signInWithGitHub} className="text-violet-700 hover:text-violet-800">Continue with GitHub</button>
+          </div>
+        )}
         <AuthField label="Email" type="email" value={form.email} onChange={(event) => update("email", event.target.value)} required autoComplete="email" />
         <AuthField label="Username" value={form.username} onChange={(event) => update("username", event.target.value)} required autoComplete="username" />
         <AuthField label="Display name (optional)" value={form.displayName} onChange={(event) => update("displayName", event.target.value)} autoComplete="name" />
         <AuthField label="Date of birth" type="date" value={form.dateOfBirth} onChange={(event) => update("dateOfBirth", event.target.value)} required />
         <AuthField label="Password" type="password" value={form.password} onChange={(event) => update("password", event.target.value)} required autoComplete="new-password" />
         <AuthField label="Confirm password" type="password" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} required autoComplete="new-password" />
-        <button disabled={isLoading} className="h4up-button h4up-button--primary w-full disabled:cursor-wait disabled:opacity-60">{isLoading ? "Creating account..." : "Create account"}</button>
-        <p className="text-center text-sm text-slate-600">Already have an account? <Link to="/login" className="font-semibold text-emerald-700">Sign in</Link></p>
+        <button disabled={isLoading} className="yapster-button yapster-button--primary w-full disabled:cursor-wait disabled:opacity-60">
+          {isLoading ? "Creating account..." : "Create account"}
+        </button>
+        <p className="text-center text-sm text-slate-600">Already have an account? <Link to="/login" className="font-semibold text-violet-700 hover:text-violet-800">Sign in</Link></p>
       </form>
     </AuthLayout>
   );

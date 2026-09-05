@@ -22,7 +22,6 @@ const vote = async (voteValue: number, postId: number, userId: string) => {
     .maybeSingle();
 
   if (existingVote) {
-    // Liked -> 0, Like -> -1
     if (existingVote.vote === voteValue) {
       const { error } = await supabase
         .from("votes")
@@ -56,71 +55,91 @@ const fetchVotes = async (postId: number): Promise<Vote[]> => {
   return data as Vote[];
 };
 
+const Arrow = ({ direction }: { direction: "up" | "down" }) => (
+  <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[2]" aria-hidden="true">
+    {direction === "up" ? (
+      <path d="m4.5 11 5.5-5.5 5.5 5.5M10 5.5v9" strokeLinecap="round" strokeLinejoin="round" />
+    ) : (
+      <path d="m4.5 9 5.5 5.5L15.5 9M10 14.5v-9" strokeLinecap="round" strokeLinejoin="round" />
+    )}
+  </svg>
+);
+
 export const LikeButton = ({ postId }: Props) => {
   const { user } = useAuth();
-
   const queryClient = useQueryClient();
 
-  const {
-    data: votes,
-    isLoading,
-    error,
-  } = useQuery<Vote[], Error>({
+  const { data: votes, isLoading, error } = useQuery<Vote[], Error>({
     queryKey: ["votes", postId],
     queryFn: () => fetchVotes(postId),
     refetchInterval: 5000,
   });
 
-  const { mutate, error: mutationError } = useMutation({
+  const { mutate, error: mutationError, isPending } = useMutation({
     mutationFn: (voteValue: number) => {
-      if (!user) throw new Error("You must be logged in to Vote!");
+      if (!user) throw new Error("You must be logged in to vote.");
       return vote(voteValue, postId, user.id);
     },
-
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["communityPost"] });
     },
   });
 
   if (isLoading) {
-    return <div> Loading votes...</div>;
+    return <div className="h-[34px] w-[108px] animate-pulse rounded-full bg-slate-100" aria-label="Loading votes" />;
   }
 
   if (error) {
-    return <div className="text-sm text-slate-500">Votes are unavailable right now.</div>;
+    return <div className="text-xs text-slate-400">Votes unavailable</div>;
   }
 
-  const likes = votes?.filter((v) => v.vote === 1).length || 0;
-  const dislikes = votes?.filter((v) => v.vote === -1).length || 0;
-  const userVote = votes?.find((v) => v.user_id === user?.id)?.vote;
+  const likes = votes?.filter((entry) => entry.vote === 1).length || 0;
+  const dislikes = votes?.filter((entry) => entry.vote === -1).length || 0;
+  const score = likes - dislikes;
+  const userVote = votes?.find((entry) => entry.user_id === user?.id)?.vote;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 py-1">
-      <button
-        type="button"
-        onClick={() => mutate(1)}
-        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-          userVote === 1
-            ? "border-emerald-200 bg-emerald-700 text-white"
-            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900"
-        }`}
-      >
-        <span aria-hidden="true">▲</span>
-        <span>{likes}</span>
-      </button>
-      <button
-        type="button"
-        onClick={() => mutate(-1)}
-        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-          userVote === -1
-            ? "border-rose-200 bg-rose-600 text-white"
-            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900"
-        }`}
-      >
-        <span aria-hidden="true">▼</span>
-        <span>{dislikes}</span>
-      </button>
-      {mutationError && <span role="alert" className="text-xs text-red-700">Vote could not be saved.</span>}
+    <div className="flex items-center gap-2">
+      <div className="inline-flex h-[34px] items-center overflow-hidden rounded-full border border-slate-200 bg-white">
+        <button
+          type="button"
+          onClick={() => mutate(1)}
+          disabled={isPending}
+          aria-label="Upvote"
+          aria-pressed={userVote === 1}
+          className={`grid h-full w-9 place-items-center border-0 transition ${
+            userVote === 1
+              ? "bg-orange-50 text-orange-600"
+              : "bg-transparent text-slate-500 hover:bg-orange-50 hover:text-orange-600"
+          }`}
+        >
+          <Arrow direction="up" />
+        </button>
+        <span className={`min-w-8 px-1 text-center text-xs font-extrabold ${score > 0 ? "text-orange-600" : score < 0 ? "text-violet-700" : "text-slate-600"}`}>
+          {score}
+        </span>
+        <button
+          type="button"
+          onClick={() => mutate(-1)}
+          disabled={isPending}
+          aria-label="Downvote"
+          aria-pressed={userVote === -1}
+          className={`grid h-full w-9 place-items-center border-0 transition ${
+            userVote === -1
+              ? "bg-violet-50 text-violet-700"
+              : "bg-transparent text-slate-500 hover:bg-violet-50 hover:text-violet-700"
+          }`}
+        >
+          <Arrow direction="down" />
+        </button>
+      </div>
+      {mutationError && (
+        <span role="alert" className="text-xs font-semibold text-red-600">
+          {user ? "Vote failed" : "Sign in to vote"}
+        </span>
+      )}
     </div>
   );
 };

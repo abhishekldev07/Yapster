@@ -49,23 +49,14 @@ export const ProfilePage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({
-    username: "",
-    display_name: "",
-    bio: "",
-    avatar_url: "",
-  });
+  const [form, setForm] = useState({ username: "", display_name: "", bio: "", avatar_url: "" });
 
   const profileUsername = useMemo(() => {
     if (!username) return "";
     return decodeURIComponent(username).trim();
   }, [username]);
 
-  const {
-    data: profile,
-    isLoading,
-    error,
-  } = useQuery<ProfileRecord | null, Error>({
+  const { data: profile, isLoading, error } = useQuery<ProfileRecord | null, Error>({
     queryKey: ["profile", profileUsername],
     queryFn: () => (profileUsername ? fetchProfileByUsername(profileUsername) : Promise.resolve(null)),
     enabled: !!profileUsername,
@@ -104,222 +95,194 @@ export const ProfilePage = () => {
     });
   };
 
+  const messageShell = (children: React.ReactNode) => (
+    <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">{children}</div>
+    </main>
+  );
+
   if (!profileUsername) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
-          Missing profile username.
-        </div>
-      </div>
-    );
+    return messageShell(<div className="yapster-card p-8 text-sm text-slate-600">Missing profile username.</div>);
   }
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500 shadow-sm">
-          Loading profile...
-        </div>
+    return messageShell(
+      <div className="yapster-card animate-pulse p-7">
+        <div className="h-24 rounded-2xl bg-slate-100" />
+        <div className="mx-5 -mt-8 h-20 w-20 rounded-2xl bg-slate-200 ring-4 ring-white" />
+        <div className="mt-5 h-5 w-44 rounded bg-slate-100" />
+        <div className="mt-3 h-3 w-28 rounded bg-slate-100" />
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-sm text-red-700 shadow-sm">
-          Unable to load this profile. Please try again.
-        </div>
+    return messageShell(
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-sm font-medium text-red-700 shadow-sm">
+        Unable to load this profile. Please try again.
       </div>
     );
   }
 
   if (!profile) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900">Profile not found</h1>
-          <p className="mt-3 text-sm text-slate-600">
-            There is no profile for <span className="font-semibold">@{profileUsername}</span>.
-          </p>
-          <div className="mt-6">
-            <Link to="/" className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
-              Back home
-            </Link>
-          </div>
-        </div>
+    return messageShell(
+      <div className="yapster-card p-9 text-center">
+        <img src="/yapster-mark.svg" alt="" className="mx-auto h-12 w-12" />
+        <h1 className="mt-4 text-2xl font-black text-slate-950">Profile not found</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          There is no Yapster profile for <span className="font-bold">@{profileUsername}</span>.
+        </p>
+        <Link to="/" className="yapster-button yapster-button--primary mt-5">Back home</Link>
       </div>
     );
   }
 
-  const profileAvatar = profile.avatar_url || user?.user_metadata?.avatar_url || null;
+  const profileAvatar = profile.avatar_url || (isOwnProfile ? user?.user_metadata?.avatar_url : null) || null;
+  const displayName = profile.display_name || profile.username || "Anonymous user";
+  const joinedDate = profile.created_at
+    ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+    : "Recently";
+  const inputClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50 px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              {profileAvatar ? (
-                <img
-                  src={profileAvatar}
-                  alt={profile.display_name || profile.username || profile.id}
-                  className="h-20 w-20 rounded-full object-cover border border-slate-200 bg-slate-100"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-2xl font-bold text-slate-700">
-                  {(profile.display_name || profile.username || "U").slice(0, 1).toUpperCase()}
+    <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
+      <div className="mx-auto max-w-[980px] px-4 sm:px-6">
+        <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+          <div className="relative h-40 overflow-hidden bg-[#0e0e15] sm:h-48">
+            <div className="absolute -left-20 -top-28 h-80 w-80 rounded-full bg-orange-500/15 blur-3xl" />
+            <div className="absolute left-1/3 -top-40 h-96 w-96 rounded-full bg-pink-600/15 blur-3xl" />
+            <div className="absolute -right-16 -top-24 h-80 w-80 rounded-full bg-violet-600/25 blur-3xl" />
+            <div className="absolute right-5 top-5 flex items-center gap-2 text-white/30">
+              <img src="/yapster-mark.svg" alt="" className="h-8 w-8 opacity-80" />
+              <span className="text-xs font-extrabold uppercase tracking-[0.15em]">Profile</span>
+            </div>
+          </div>
+
+          <div className="relative px-5 pb-6 sm:px-7 sm:pb-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex min-w-0 items-end gap-4">
+                <div className="-mt-14 shrink-0 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
+                  {profileAvatar ? (
+                    <img src={profileAvatar} alt="" className="h-24 w-24 rounded-[17px] object-cover sm:h-28 sm:w-28" />
+                  ) : (
+                    <div className="grid h-24 w-24 place-items-center rounded-[17px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-3xl font-black text-violet-800 sm:h-28 sm:w-28">
+                      {displayName.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
                 </div>
+
+                <div className="min-w-0 pb-1">
+                  <h1 className="truncate text-2xl font-black tracking-[-0.04em] text-slate-950 sm:text-3xl">{displayName}</h1>
+                  <p className="mt-1 text-sm font-semibold text-violet-700">@{profile.username || profileUsername}</p>
+                </div>
+              </div>
+
+              {isOwnProfile && !isEditing && (
+                <button type="button" onClick={openEditor} className="yapster-button yapster-button--ghost w-fit">
+                  Edit profile
+                </button>
               )}
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
-                  Profile
-                </p>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-                  {profile.display_name || profile.username || "Anonymous user"}
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  @{profile.username || profileUsername}
-                </p>
-              </div>
             </div>
 
-            {isOwnProfile && !isEditing && (
-              <button
-                type="button"
-                onClick={openEditor}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                Edit Profile
-              </button>
+            {!isEditing ? (
+              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">About</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-650">
+                    {profile.bio || "This Yapster has not written a bio yet."}
+                  </p>
+                </div>
+
+                <aside className="rounded-2xl border border-slate-100 bg-white p-5 ring-1 ring-slate-100">
+                  <h2 className="text-sm font-extrabold text-slate-950">Profile details</h2>
+                  <dl className="mt-4 space-y-4 text-sm">
+                    <div>
+                      <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Username</dt>
+                      <dd className="mt-1 font-bold text-slate-700">@{profile.username || profileUsername}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Joined Yapster</dt>
+                      <dd className="mt-1 font-bold text-slate-700">{joinedDate}</dd>
+                    </div>
+                  </dl>
+                </aside>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-950">Edit profile</h2>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">Profile image upload will replace URL-based avatars in a later phase.</p>
+                  </div>
+                  <button type="button" onClick={() => setIsEditing(false)} className="text-xs font-extrabold text-slate-400 hover:text-slate-700">Close</button>
+                </div>
+
+                <div className="mt-5 grid gap-5 md:grid-cols-2">
+                  <label className="text-sm font-extrabold text-slate-700 md:col-span-2">
+                    Avatar URL
+                    <input
+                      type="url"
+                      value={form.avatar_url}
+                      onChange={(event) => setForm((current) => ({ ...current, avatar_url: event.target.value }))}
+                      placeholder="https://..."
+                      className={`${inputClassName} mt-2`}
+                    />
+                  </label>
+
+                  <label className="text-sm font-extrabold text-slate-700">
+                    Username
+                    <input
+                      type="text"
+                      value={form.username}
+                      onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
+                      className={`${inputClassName} mt-2`}
+                    />
+                  </label>
+
+                  <label className="text-sm font-extrabold text-slate-700">
+                    Display name
+                    <input
+                      type="text"
+                      value={form.display_name}
+                      onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))}
+                      className={`${inputClassName} mt-2`}
+                    />
+                  </label>
+
+                  <label className="text-sm font-extrabold text-slate-700 md:col-span-2">
+                    Bio
+                    <textarea
+                      rows={5}
+                      value={form.bio}
+                      onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))}
+                      className={`${inputClassName} mt-2 resize-y leading-6`}
+                    />
+                  </label>
+                </div>
+
+                {mutation.isError && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+                    {getFriendlyErrorMessage(mutation.error, "Could not save profile. Please try again.")}
+                  </div>
+                )}
+
+                {mutation.isSuccess && (
+                  <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2.5 text-sm font-medium text-violet-700">
+                    Profile saved successfully.
+                  </div>
+                )}
+
+                <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button type="button" onClick={() => setIsEditing(false)} className="yapster-button yapster-button--ghost">Cancel</button>
+                  <button type="submit" disabled={mutation.isPending} className="yapster-button yapster-button--primary disabled:cursor-not-allowed disabled:opacity-60">
+                    {mutation.isPending ? "Saving..." : "Save changes"}
+                  </button>
+                </div>
+              </form>
             )}
           </div>
-        </div>
-
-        {!isEditing ? (
-          <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.5fr_1fr]">
-            <div className="space-y-5">
-              <div>
-                <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  About
-                </h2>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                  {profile.bio || "No bio yet."}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
-                Basic info
-              </h2>
-              <div className="mt-4 space-y-3 text-sm text-slate-700">
-                <div>
-                  <span className="block text-xs uppercase tracking-[0.08em] text-slate-500">Username</span>
-                  <span className="mt-1 block font-medium">@{profile.username || profileUsername}</span>
-                </div>
-                <div>
-                  <span className="block text-xs uppercase tracking-[0.08em] text-slate-500">Display name</span>
-                  <span className="mt-1 block font-medium">{profile.display_name || "Not set"}</span>
-                </div>
-                <div>
-                  <span className="block text-xs uppercase tracking-[0.08em] text-slate-500">Joined</span>
-                  <span className="mt-1 block font-medium">
-                    {profile.created_at ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Recently"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5 p-5 sm:p-6">
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2 md:col-span-2">
-                <label htmlFor="profile-avatar" className="block text-sm font-medium text-slate-700">
-                  Avatar URL
-                </label>
-                <input
-                  id="profile-avatar"
-                  type="url"
-                  value={form.avatar_url}
-                  onChange={(event) => setForm((current) => ({ ...current, avatar_url: event.target.value }))}
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="profile-username" className="block text-sm font-medium text-slate-700">
-                  Username
-                </label>
-                <input
-                  id="profile-username"
-                  type="text"
-                  value={form.username}
-                  onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="profile-display-name" className="block text-sm font-medium text-slate-700">
-                  Display name
-                </label>
-                <input
-                  id="profile-display-name"
-                  type="text"
-                  value={form.display_name}
-                  onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label htmlFor="profile-bio" className="block text-sm font-medium text-slate-700">
-                  Bio
-                </label>
-                <textarea
-                  id="profile-bio"
-                  rows={5}
-                  value={form.bio}
-                  onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {mutation.isError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {getFriendlyErrorMessage(mutation.error, "Could not save profile. Please try again.")}
-              </div>
-            )}
-
-            {mutation.isSuccess && (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                Profile saved successfully.
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={mutation.isPending}
-                className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {mutation.isPending ? "Saving..." : "Save Changes"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
