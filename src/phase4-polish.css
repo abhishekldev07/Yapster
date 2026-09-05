@@ -28,6 +28,14 @@
   letter-spacing: 0.04em !important;
 }
 
+/* Community-list ownership metadata should be neutral rather than a bright admin badge. */
+article.group .border-amber-200.bg-amber-50.text-amber-800 {
+  border-color: transparent !important;
+  background: var(--y-surface-muted) !important;
+  color: var(--y-text-soft) !important;
+  font-weight: 500 !important;
+}
+
 /* Fast, subtle account-menu motion. */
 .yapster-account-menu {
   transform-origin: top right;
@@ -62,6 +70,8 @@
   text-align: left;
   font-size: 12px;
   font-weight: 500;
+  padding: .55rem .7rem;
+  border-radius: .55rem;
 }
 .yapster-popover-menu button:hover { background: var(--y-surface-muted); }
 
@@ -75,9 +85,11 @@
 .yapster-message-row:hover .yapster-message-hover-actions,
 .yapster-message-row:focus-within .yapster-message-hover-actions,
 .yapster-inbox-row:hover .yapster-inbox-hover-actions,
-.yapster-inbox-row:focus-within .yapster-inbox-hover-actions {
-  opacity: 1;
-  transform: translateY(0);
+.yapster-inbox-row:focus-within .yapster-inbox-hover-actions,
+.yapster-message-hover-actions.is-open,
+.yapster-inbox-hover-actions.is-open {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 /* Native file inputs are replaced by labelled upload controls in the polished forms. */
