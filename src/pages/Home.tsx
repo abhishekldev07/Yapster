@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FeedSort, PostList, TopRange } from "../components/PostList";
+import { FeedMode, FeedSort, PostList, TopRange } from "../components/PostList";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
 
-const feedTabs = [
+const feedTabs: { key: FeedMode; label: string }[] = [
   { key: "for_you", label: "My communities" },
+  { key: "following", label: "Following" },
   { key: "discover", label: "Discover" },
-] as const;
+];
 
 const sortTabs: { key: FeedSort; label: string }[] = [
   { key: "hot", label: "Hot" },
@@ -40,7 +41,6 @@ const fetchTrendingCommunities = async (): Promise<TrendingCommunity[]> => {
     .select("id, name, description, member_count, recent_posts, recent_comments, trend_score")
     .order("trend_score", { ascending: false })
     .limit(5);
-
   if (error) throw new Error(error.message);
   return (data ?? []) as TrendingCommunity[];
 };
@@ -51,7 +51,7 @@ const ArrowIcon = () => (
 
 export const Home = () => {
   const { user } = useAuth();
-  const [feedMode, setFeedMode] = useState<(typeof feedTabs)[number]["key"]>(user ? "for_you" : "discover");
+  const [feedMode, setFeedMode] = useState<FeedMode>(user ? "for_you" : "discover");
   const [feedSort, setFeedSort] = useState<FeedSort>("hot");
   const [topRange, setTopRange] = useState<TopRange>("week");
   const { data: trendingCommunities = [], error: communitiesError } = useQuery<TrendingCommunity[], Error>({
@@ -61,6 +61,7 @@ export const Home = () => {
   });
 
   const topRangeLabel = topRanges.find((range) => range.key === topRange)?.label ?? "This week";
+  const sectionTitle = feedMode === "for_you" ? "From your communities" : feedMode === "following" ? "From people you follow" : "Worth discovering";
 
   return (
     <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
@@ -70,27 +71,27 @@ export const Home = () => {
             <div className="yapster-feed-hero p-5 sm:p-6">
               <div className="relative z-10 flex items-start justify-between gap-6">
                 <div className="max-w-[580px]">
-                  <h1 className="max-w-xl text-2xl font-extrabold leading-tight tracking-[-0.045em] text-white sm:text-[2rem]">{user ? "Your communities, one conversation at a time." : "Find your people. Join the conversation."}</h1>
-                  <p className="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-[0.95rem]">{user ? "Catch up on discussions from the communities you joined, or jump outside your bubble and discover something new." : "Interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}</p>
+                  <h1 className="max-w-xl text-2xl font-extrabold leading-tight tracking-[-0.045em] text-white sm:text-[2rem]">{user ? "Your communities, people, and conversations in one place." : "Find your people. Join the conversation."}</h1>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-[0.95rem]">{user ? "Catch up on communities you joined, people you follow, or jump outside your bubble and discover something new." : "Interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}</p>
                 </div>
                 <div className="hidden shrink-0 sm:block"><Link to={user ? "/create" : "/signup"} className="yapster-hero-cta inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold transition hover:-translate-y-0.5">{user ? "Create post" : "Join Yapster"}<ArrowIcon /></Link></div>
               </div>
 
               <div className="relative z-10 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                <div className="inline-flex rounded-xl border border-white/10 bg-white/[0.055] p-1">
+                <div className="inline-flex max-w-full overflow-x-auto rounded-xl border border-white/10 bg-white/[0.055] p-1">
                   {feedTabs.map((tab) => {
                     const isActive = feedMode === tab.key;
-                    const requiresLogin = tab.key === "for_you" && !user;
-                    return <button key={tab.key} type="button" onClick={() => !requiresLogin && setFeedMode(tab.key)} disabled={requiresLogin} className={`rounded-lg px-3 py-2 text-xs font-bold transition sm:text-sm ${isActive ? "bg-[#2b2b36] text-white shadow-sm ring-1 ring-white/10" : requiresLogin ? "cursor-not-allowed text-white/25" : "text-white/55 hover:bg-white/[0.045] hover:text-white"}`} aria-pressed={isActive}>{tab.label}</button>;
+                    const requiresLogin = tab.key !== "discover" && !user;
+                    return <button key={tab.key} type="button" onClick={() => !requiresLogin && setFeedMode(tab.key)} disabled={requiresLogin} className={`min-w-max rounded-lg px-3 py-2 text-xs font-bold transition sm:text-sm ${isActive ? "bg-[#2b2b36] text-white shadow-sm ring-1 ring-white/10" : requiresLogin ? "cursor-not-allowed text-white/25" : "text-white/55 hover:bg-white/[0.045] hover:text-white"}`} aria-pressed={isActive}>{tab.label}</button>;
                   })}
                 </div>
-                {!user && <span className="text-xs font-medium text-white/40">Sign in to build a personalized community feed.</span>}
+                {!user && <span className="text-xs font-medium text-white/40">Sign in to build personalized feeds.</span>}
               </div>
             </div>
 
             <div className="mb-4 mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-lg font-extrabold text-slate-950">{feedMode === "for_you" ? "From your communities" : "Worth discovering"}</h2>
+                <h2 className="text-lg font-extrabold text-slate-950">{sectionTitle}</h2>
                 <p className="mt-0.5 text-xs text-slate-500">{feedSort === "hot" ? "Active conversations rising right now." : feedSort === "new" ? "The newest conversations first." : `Highest-scoring conversations · ${topRangeLabel.toLowerCase()}.`}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
