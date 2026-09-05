@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { Community, fetchCommunities } from "./CommunityList";
 import { getFriendlyErrorMessage } from "../lib/auth";
 
-type PostType = "text" | "image" | "link";
+type PostType = "text" | "image" | "link" | "poll";
 
 interface PostInput {
   title: string;
@@ -37,7 +37,7 @@ interface CommunityRule {
   description: string;
 }
 
-const createPost = async (post: PostInput, imageFile: File | null) => {
+const createPost = async (post: PostInput, imageFile: File | null, pollOptions: string[]) => {
   let imageUrl: string | null = null;
   if (imageFile) {
     const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, "-");
@@ -46,8 +46,28 @@ const createPost = async (post: PostInput, imageFile: File | null) => {
     if (uploadError) throw new Error(uploadError.message);
     imageUrl = supabase.storage.from("post-images").getPublicUrl(filePath).data.publicUrl;
   }
-  const { error } = await supabase.from("posts").insert({ ...post, image_url: imageUrl });
+
+  const { data: createdPost, error } = await supabase
+    .from("posts")
+    .insert({ ...post, image_url: imageUrl })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
+
+  if (post.post_type === "poll") {
+    const cleanOptions = pollOptions.map((option) => option.trim()).filter(Boolean);
+    const { error: optionError } = await supabase.from("poll_options").insert(
+      cleanOptions.map((optionText, index) => ({
+        post_id: Number(createdPost.id),
+        option_text: optionText,
+        position: index,
+      }))
+    );
+    if (optionError) {
+      await supabase.from("posts").delete().eq("id", createdPost.id);
+      throw new Error(optionError.message);
+    }
+  }
 };
 
 const fetchUserMembershipStatus = async (communityId: number, userId: string): Promise<MembershipStatus | null> => {
@@ -78,6 +98,7 @@ const postTypes: { key: PostType; label: string; hint: string }[] = [
   { key: "text", label: "Text", hint: "Discussion, question, story" },
   { key: "image", label: "Image", hint: "Photo or visual post" },
   { key: "link", label: "Link", hint: "Share a useful URL" },
+  { key: "poll", label: "Poll", hint: "Ask the community to vote" },
 ];
 
 export const CreatePost = () => {
@@ -87,6 +108,7 @@ export const CreatePost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", ""]);
   const [flairId, setFlairId] = useState<number | null>(null);
   const [communityId, setCommunityId] = useState<number | null>(Number.isFinite(communityFromRoute) && communityFromRoute > 0 ? communityFromRoute : null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -115,7 +137,7 @@ export const CreatePost = () => {
   });
 
   const { mutate, isPending, isError, error: mutationError } = useMutation({
-    mutationFn: (data: { post: PostInput; imageFile: File | null }) => createPost(data.post, data.imageFile),
+    mutationFn: (data: { post: PostInput; imageFile: File | null; pollOptions: string[] }) => createPost(data.post, data.imageFile, data.pollOptions),
     onSuccess: () => navigate(communityId ? `/community/${communityId}` : "/"),
   });
 
@@ -123,7 +145,9 @@ export const CreatePost = () => {
   const isMuted = membershipStatus?.muted || false;
   const canPost = !isBanned && !isMuted;
   const validLink = postType !== "link" || /^https?:\/\//i.test(linkUrl.trim());
-  const isFormValid = !!user && !!communityId && !!title.trim() && canPost && validLink && (postType !== "text" || !!content.trim()) && (postType !== "image" || !!selectedFile) && (postType !== "link" || !!linkUrl.trim());
+  const cleanPollOptions = pollOptions.map((option) => option.trim()).filter(Boolean);
+  const pollIsValid = postType !== "poll" || (cleanPollOptions.length >= 2 && cleanPollOptions.length <= 6 && new Set(cleanPollOptions.map((option) => option.toLowerCase())).size === cleanPollOptions.length);
+  const isFormValid = !!user && !!communityId && !!title.trim() && canPost && validLink && pollIsValid && (postType !== "text" || !!content.trim()) && (postType !== "image" || !!selectedFile) && (postType !== "link" || !!linkUrl.trim());
   const fieldClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-850 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -141,6 +165,7 @@ export const CreatePost = () => {
         flair_id: flairId,
       },
       imageFile: postType === "image" ? selectedFile : null,
+      pollOptions: postType === "poll" ? cleanPollOptions : [],
     });
   };
 
@@ -168,7 +193,7 @@ export const CreatePost = () => {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <p className="mb-2 text-sm font-extrabold text-slate-700">Post type</p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {postTypes.map((type) => (
             <button key={type.key} type="button" onClick={() => setPostType(type.key)} className={`rounded-xl border p-3 text-left transition ${postType === type.key ? "border-violet-400 bg-violet-50 ring-2 ring-violet-100" : "border-slate-200 bg-white hover:border-slate-300"}`} aria-pressed={postType === type.key}>
               <strong className="block text-sm text-slate-900">{type.label}</strong>
@@ -190,35 +215,23 @@ export const CreatePost = () => {
         <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
           <div className="flex items-center justify-between gap-3"><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-orange-700">Community rules</p><span className="text-[11px] font-bold text-orange-600/70">Read before posting</span></div>
           <ol className="mt-3 space-y-2.5">
-            {rules.map((rule, index) => (
-              <li key={rule.id} className="flex items-start gap-2.5 text-sm text-slate-700">
-                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[10px] font-black text-orange-700 ring-1 ring-orange-200">{index + 1}</span>
-                <span><strong className="font-extrabold">{rule.title}</strong>{rule.description && <span className="mt-0.5 block text-xs leading-5 text-slate-500">{rule.description}</span>}</span>
-              </li>
-            ))}
+            {rules.map((rule, index) => <li key={rule.id} className="flex items-start gap-2.5 text-sm text-slate-700"><span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[10px] font-black text-orange-700 ring-1 ring-orange-200">{index + 1}</span><span><strong className="font-extrabold">{rule.title}</strong>{rule.description && <span className="mt-0.5 block text-xs leading-5 text-slate-500">{rule.description}</span>}</span></li>)}
           </ol>
         </div>
       )}
 
-      {communityId && (isBanned || isMuted) && (
-        <div className={`rounded-xl border p-4 ${isBanned ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}>
-          <p className={`text-sm font-semibold ${isBanned ? "text-red-800" : "text-amber-800"}`}>{isBanned ? "You are banned from this community and cannot post here." : "You are muted in this community and cannot post or comment here."}</p>
-        </div>
-      )}
+      {communityId && (isBanned || isMuted) && <div className={`rounded-xl border p-4 ${isBanned ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}><p className={`text-sm font-semibold ${isBanned ? "text-red-800" : "text-amber-800"}`}>{isBanned ? "You are banned from this community and cannot post here." : "You are muted in this community and cannot post or comment here."}</p></div>}
 
       {flairs.length > 0 && (
         <div>
           <label htmlFor="flair" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>Post flair</span><span className="text-[11px] font-semibold text-slate-400">Optional</span></label>
-          <select id="flair" value={flairId || ""} onChange={(event) => setFlairId(event.target.value ? Number(event.target.value) : null)} className={fieldClassName}>
-            <option value="">No flair</option>
-            {flairs.map((flair) => <option key={flair.id} value={flair.id}>{flair.name}</option>)}
-          </select>
+          <select id="flair" value={flairId || ""} onChange={(event) => setFlairId(event.target.value ? Number(event.target.value) : null)} className={fieldClassName}><option value="">No flair</option>{flairs.map((flair) => <option key={flair.id} value={flair.id}>{flair.name}</option>)}</select>
         </div>
       )}
 
       <div>
-        <label htmlFor="title" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>Title</span><span className="text-[11px] font-semibold text-slate-400">Make it clear</span></label>
-        <input type="text" id="title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What is this discussion about?" className={fieldClassName} maxLength={300} required />
+        <label htmlFor="title" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>{postType === "poll" ? "Poll question" : "Title"}</span><span className="text-[11px] font-semibold text-slate-400">Make it clear</span></label>
+        <input type="text" id="title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={postType === "poll" ? "What do you want the community to decide?" : "What is this discussion about?"} className={fieldClassName} maxLength={300} required />
       </div>
 
       {postType === "link" && (
@@ -229,27 +242,34 @@ export const CreatePost = () => {
         </div>
       )}
 
+      {postType === "poll" && (
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-3"><p className="text-sm font-extrabold text-slate-700">Poll options</p><span className="text-[11px] font-semibold text-slate-400">2–6 choices</span></div>
+          <div className="space-y-2.5">
+            {pollOptions.map((option, index) => (
+              <div key={index} className="flex gap-2">
+                <input value={option} onChange={(event) => setPollOptions((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} maxLength={120} placeholder={`Option ${index + 1}`} className={fieldClassName} />
+                {pollOptions.length > 2 && <button type="button" onClick={() => setPollOptions((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="rounded-xl border border-red-100 bg-red-50 px-3 text-sm font-black text-red-600 hover:bg-red-100" aria-label={`Remove option ${index + 1}`}>×</button>}
+              </div>
+            ))}
+          </div>
+          {pollOptions.length < 6 && <button type="button" onClick={() => setPollOptions((current) => [...current, ""])} className="mt-3 text-xs font-extrabold text-violet-700 hover:text-violet-800">+ Add another option</button>}
+          {!pollIsValid && cleanPollOptions.length >= 2 && <p className="mt-2 text-xs font-semibold text-red-600">Poll options must be unique.</p>}
+        </div>
+      )}
+
       <div>
-        <label htmlFor="content" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>{postType === "text" ? "Body" : "Caption / context"}</span><span className="text-[11px] font-semibold text-slate-400">{postType === "text" ? "Required" : "Optional"}</span></label>
-        <textarea id="content" value={content} onChange={(event) => setContent(event.target.value)} placeholder="Share the details, your question, recommendation, or point of view..." className={`${fieldClassName} min-h-36 resize-y leading-6`} rows={7} required={postType === "text"} />
+        <label htmlFor="content" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>{postType === "text" ? "Body" : postType === "poll" ? "Context" : "Caption / context"}</span><span className="text-[11px] font-semibold text-slate-400">{postType === "text" ? "Required" : "Optional"}</span></label>
+        <textarea id="content" value={content} onChange={(event) => setContent(event.target.value)} placeholder={postType === "poll" ? "Add context for your poll if needed..." : "Share the details, your question, recommendation, or point of view..."} className={`${fieldClassName} min-h-36 resize-y leading-6`} rows={7} required={postType === "text"} />
       </div>
 
       {postType === "image" && (
         <div>
           <label htmlFor="image" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>Image</span><span className="text-[11px] font-semibold text-slate-400">Required</span></label>
           {!previewUrl ? (
-            <div className="relative">
-              <input type="file" id="image" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" required />
-              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-9 text-center text-slate-400 transition hover:border-violet-300 hover:bg-violet-50/40 hover:text-violet-600">
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"><ImageIcon /></div>
-                <p className="mt-3 text-sm font-extrabold text-slate-700">Upload an image</p><p className="mt-1 text-xs text-slate-400">PNG, JPG, or WEBP</p>
-              </div>
-            </div>
+            <div className="relative"><input type="file" id="image" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" required /><div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-9 text-center text-slate-400 transition hover:border-violet-300 hover:bg-violet-50/40 hover:text-violet-600"><div className="grid h-14 w-14 place-items-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"><ImageIcon /></div><p className="mt-3 text-sm font-extrabold text-slate-700">Upload an image</p><p className="mt-1 text-xs text-slate-400">PNG, JPG, or WEBP</p></div></div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-              <img src={previewUrl} alt="Post preview" className="max-h-80 w-full object-cover" />
-              <div className="flex items-center gap-4 border-t border-slate-200 bg-white p-3.5"><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-slate-800">{selectedFile?.name}</p><p className="mt-0.5 text-xs text-slate-400">{(selectedFile ? selectedFile.size / 1024 : 0).toFixed(1)} KB</p></div><button type="button" onClick={removeFile} className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-extrabold text-red-600 transition hover:bg-red-100">Remove</button></div>
-            </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"><img src={previewUrl} alt="Post preview" className="max-h-80 w-full object-cover" /><div className="flex items-center gap-4 border-t border-slate-200 bg-white p-3.5"><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold text-slate-800">{selectedFile?.name}</p><p className="mt-0.5 text-xs text-slate-400">{(selectedFile ? selectedFile.size / 1024 : 0).toFixed(1)} KB</p></div><button type="button" onClick={removeFile} className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-extrabold text-red-600 transition hover:bg-red-100">Remove</button></div></div>
           )}
         </div>
       )}
