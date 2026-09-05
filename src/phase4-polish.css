@@ -121,9 +121,12 @@ html[data-theme="dark"] [data-chat-popover] > div button:hover {
 html[data-theme="dark"] .yapster-inbox-row {
   background: transparent !important;
 }
+html[data-theme="dark"] .yapster-inbox-row[class*="bg-slate-100"] {
+  background: #171720 !important;
+}
 html[data-theme="dark"] .yapster-inbox-row:hover,
 html[data-theme="dark"] .yapster-inbox-row:focus-within {
-  background: #15151f !important;
+  background: #1b1b25 !important;
 }
 
 /* Native profile file upload should match the polished community upload controls. */
@@ -173,7 +176,8 @@ input[type="file"]:not(.yapster-file-input)::file-selector-button:hover {
 /* Standardized, breathable back-to-community action across community tool pages. */
 main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child,
 main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child,
-main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child {
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/community/"]:first-child {
   display: inline-flex !important;
   align-items: center !important;
   width: fit-content !important;
@@ -190,7 +194,8 @@ main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-chi
 }
 main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child:hover,
 main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child:hover,
-main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child:hover {
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child:hover,
+main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/community/"]:first-child:hover {
   background: var(--y-surface) !important;
   border-color: var(--y-border-strong) !important;
   color: var(--y-text) !important;
