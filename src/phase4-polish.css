@@ -2,7 +2,7 @@
 
 /* Yapster should feel confident, not cartoonishly heavy. Keep hierarchy while reducing visual weight. */
 .font-black { font-weight: 700 !important; }
-.font-extrabold { font-weight: 650 !important; }
+.font-extrabold { font-weight: 600 !important; }
 .font-bold { font-weight: 600 !important; }
 
 /* Compact action text should be calm and product-like. */
