@@ -4,6 +4,7 @@ import { supabase } from "../supabase-client";
 import { PostItem } from "./PostItem";
 
 export type FeedSort = "hot" | "new" | "top";
+export type TopRange = "day" | "week" | "month" | "year" | "all";
 
 export interface Post {
   id: number;
@@ -31,6 +32,7 @@ interface Props {
   mode?: "for_you" | "discover";
   userId?: string | null;
   sort?: FeedSort;
+  topRange?: TopRange;
 }
 
 interface PostCount {
@@ -110,13 +112,20 @@ const fetchOwnedCommunityIds = async (userId: string): Promise<Set<number>> => {
   return new Set((data ?? []).map((row) => Number(row.id)).filter(Number.isFinite));
 };
 
-const sortPosts = (posts: Post[], sort: FeedSort) => {
-  const copy = [...posts];
+const filterTopRange = (posts: Post[], range: TopRange) => {
+  if (range === "all") return posts;
+  const milliseconds = range === "day" ? 86_400_000 : range === "week" ? 604_800_000 : range === "month" ? 2_592_000_000 : 31_536_000_000;
+  const cutoff = Date.now() - milliseconds;
+  return posts.filter((post) => new Date(post.created_at).getTime() >= cutoff);
+};
+
+const sortPosts = (posts: Post[], sort: FeedSort, topRange: TopRange) => {
+  const copy = sort === "top" ? filterTopRange([...posts], topRange) : [...posts];
   if (sort === "new") {
     return copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
   if (sort === "top") {
-    return copy.sort((a, b) => (b.like_count ?? 0) - (a.like_count ?? 0) || (b.comment_count ?? 0) - (a.comment_count ?? 0));
+    return copy.sort((a, b) => (b.like_count ?? 0) - (a.like_count ?? 0) || (b.comment_count ?? 0) - (a.comment_count ?? 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   const now = Date.now();
@@ -134,7 +143,7 @@ const EmptyIcon = () => (
   </svg>
 );
 
-export const PostList = ({ mode = "discover", userId, sort = "hot" }: Props) => {
+export const PostList = ({ mode = "discover", userId, sort = "hot", topRange = "all" }: Props) => {
   const { data, error, isLoading } = useQuery<Post[], Error>({ queryKey: ["posts"], queryFn: fetchPosts });
   const { data: joinedIds = new Set<number>() } = useQuery<Set<number>, Error>({
     queryKey: ["community-joined-ids", userId],
@@ -158,7 +167,7 @@ export const PostList = ({ mode = "discover", userId, sort = "hot" }: Props) => 
     }
     if (communityId == null || !userId) return true;
     return !accessibleCommunityIds.has(communityId);
-  }), sort);
+  }), sort, topRange);
 
   if (isLoading) {
     return (
@@ -180,8 +189,8 @@ export const PostList = ({ mode = "discover", userId, sort = "hot" }: Props) => 
     return (
       <div className="yapster-card p-9 text-center">
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-50 text-violet-700"><EmptyIcon /></div>
-        <h3 className="mt-4 text-xl font-extrabold text-slate-950">{forYou ? "Your feed is quiet" : "Nothing to discover yet"}</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{forYou ? "Join a few communities and their discussions will show up here." : "New discussions will appear here as people start posting around Yapster."}</p>
+        <h3 className="mt-4 text-xl font-extrabold text-slate-950">{forYou ? "Your feed is quiet" : sort === "top" ? "No top posts in this range" : "Nothing to discover yet"}</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{forYou ? "Join a few communities and their discussions will show up here." : sort === "top" ? "Try a wider time range to see more highly rated discussions." : "New discussions will appear here as people start posting around Yapster."}</p>
         {forYou && <Link to="/communities" className="yapster-button yapster-button--primary mt-5">Browse communities</Link>}
       </div>
     );
