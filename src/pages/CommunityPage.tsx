@@ -28,14 +28,24 @@ export const CommunityPage = () => {
   return (
     <main className="yapster-community-page pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
-        {canManage && (
-          <div className="mb-3 flex justify-end">
-            <Link to={`/community/${communityId}/settings`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-600 shadow-sm transition hover:border-violet-200 hover:text-violet-700">
+        <div className="mb-3 flex flex-wrap justify-end gap-2">
+          <Link
+            to={`/community/${communityId}/rules`}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-600 shadow-sm transition hover:border-orange-200 hover:text-orange-700"
+          >
+            Community rules
+            <span aria-hidden="true">→</span>
+          </Link>
+          {canManage && (
+            <Link
+              to={`/community/${communityId}/settings`}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-extrabold text-slate-600 shadow-sm transition hover:border-violet-200 hover:text-violet-700"
+            >
               Rules & flairs
               <span aria-hidden="true">→</span>
             </Link>
-          </div>
-        )}
+          )}
+        </div>
         <CommunityDisplay communityId={communityId} />
       </div>
     </main>
