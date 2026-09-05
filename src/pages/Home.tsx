@@ -56,7 +56,7 @@ export const Home = () => {
                   {feedTabs.map((tab) => {
                     const isActive = feedMode === tab.key;
                     const requiresLogin = tab.key === "for_you" && !user;
-                    return <button key={tab.key} type="button" onClick={() => !requiresLogin && setFeedMode(tab.key)} disabled={requiresLogin} className={`rounded-lg px-3 py-2 text-xs font-bold transition sm:text-sm ${isActive ? "bg-white text-slate-950 shadow-sm" : requiresLogin ? "cursor-not-allowed text-white/25" : "text-white/55 hover:text-white"}`} aria-pressed={isActive}>{tab.label}</button>;
+                    return <button key={tab.key} type="button" onClick={() => !requiresLogin && setFeedMode(tab.key)} disabled={requiresLogin} className={`rounded-lg px-3 py-2 text-xs font-bold transition sm:text-sm ${isActive ? "bg-[#2b2b36] text-white shadow-sm ring-1 ring-white/10" : requiresLogin ? "cursor-not-allowed text-white/25" : "text-white/55 hover:bg-white/[0.045] hover:text-white"}`} aria-pressed={isActive}>{tab.label}</button>;
                   })}
                 </div>
                 {!user && <span className="text-xs font-medium text-white/40">Sign in to build a personalized community feed.</span>}
