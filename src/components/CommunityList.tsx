@@ -69,6 +69,19 @@ const fetchCommunityMemberCounts = async (): Promise<Record<number, number>> => 
   return counts;
 };
 
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2" aria-hidden="true">
+    <circle cx="10.8" cy="10.8" r="6.5" />
+    <path d="m16 16 4 4" strokeLinecap="round" />
+  </svg>
+);
+
+const ArrowIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2" aria-hidden="true">
+    <path d="M5 12h14M14 7l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const CommunityList = () => {
   const queryClient = useQueryClient();
   const { user, isLoading: authLoading, signInWithGitHub } = useAuth();
@@ -138,8 +151,8 @@ export const CommunityList = () => {
       queryClient.invalidateQueries({ queryKey: ["community-member-count", variables.communityId] });
       queryClient.invalidateQueries({ queryKey: ["community-membership", variables.communityId] });
     },
-    onError: (error) => {
-      setMembershipError(getFriendlyErrorMessage(error, "We could not update your community membership."));
+    onError: (mutationError) => {
+      setMembershipError(getFriendlyErrorMessage(mutationError, "We could not update your community membership."));
       setPendingCommunityId(null);
     },
   });
@@ -172,40 +185,49 @@ export const CommunityList = () => {
     joinOrLeaveMembership.mutate({ communityId, isJoined });
   };
 
-  if (isLoading)
+  if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
+      <div className="yapster-card p-6 text-sm text-slate-500">
         Loading communities...
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
         Unable to load communities. Please try again.
       </div>
     );
+  }
 
   return (
     <div className="space-y-5">
       {membershipError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
           {membershipError}
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <label className="sr-only" htmlFor="community-search">
-          Search communities
+      <div className="yapster-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <label className="relative block flex-1" htmlFor="community-search">
+          <span className="sr-only">Search communities</span>
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <SearchIcon />
+          </span>
+          <input
+            id="community-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search communities by name, category, or topic"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60"
+          />
         </label>
-        <input
-          id="community-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search communities"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
-        />
+        <div className="flex items-center gap-2 px-1 text-xs font-semibold text-slate-400 sm:px-0">
+          <span>{filteredCommunities.length}</span>
+          <span>{filteredCommunities.length === 1 ? "community" : "communities"}</span>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -217,69 +239,66 @@ export const CommunityList = () => {
 
           let buttonLabel = "Join";
           if (authLoading) buttonLabel = "Loading...";
-          else if (isPending) buttonLabel = "Processing...";
+          else if (isPending) buttonLabel = "Working...";
           else if (isOwner) buttonLabel = "Admin";
           else if (isMember) buttonLabel = "Joined";
 
           return (
             <article
               key={community.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform hover:-translate-y-0.5"
+              className="group relative overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_34px_rgba(15,15,25,0.08)]"
             >
-              <div className="p-4">
+              <div className="h-1 bg-gradient-to-r from-orange-400 via-pink-500 to-violet-600 opacity-80" />
+              <div className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800">
+                  <Link to={`/community/${community.id}`} className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">
                       {community.name?.slice(0, 1).toUpperCase() || "C"}
-                    </div>
-                    <div>
-                      <Link
-                        to={`/community/${community.id}`}
-                        className="text-lg font-semibold text-slate-900 hover:text-emerald-800"
-                      >
+                    </span>
+                    <span className="min-w-0">
+                      <strong className="block truncate text-base font-extrabold text-slate-950 transition group-hover:text-violet-700">
                         {community.name}
-                      </Link>
-                      {community.category && (
-                        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500">
-                          {community.category}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                      </strong>
+                      <span className="mt-0.5 block text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                        {community.category || "Community"}
+                      </span>
+                    </span>
+                  </Link>
 
                   {!isOwner ? (
                     <button
                       type="button"
                       disabled={authLoading || isPending || joinOrLeaveMembership.isPending}
                       onClick={() => handleMembershipToggle(community.id, isMember)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${
                         isMember
-                          ? "border border-slate-200 bg-slate-100 text-slate-700"
-                          : "bg-emerald-700 text-white"
-                      } ${
-                        authLoading || isPending ? "cursor-not-allowed opacity-70" : ""
-                      }`}
+                          ? "border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100"
+                          : "border border-violet-600 bg-violet-600 text-white hover:border-violet-700 hover:bg-violet-700"
+                      } ${authLoading || isPending ? "cursor-not-allowed opacity-65" : ""}`}
                     >
                       {buttonLabel}
                     </button>
                   ) : (
-                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                    <span className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-extrabold text-amber-800">
                       Admin
                     </span>
                   )}
                 </div>
 
-                <p className="mt-4 text-sm leading-6 text-slate-600">
-                  {community.description || "A community for thoughtful discussion and recommendations."}
+                <p className="mt-4 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-slate-600">
+                  {community.description || "A place for thoughtful discussion, recommendations, questions, and shared interests."}
                 </p>
 
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
-                  <span>{memberCount} members</span>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400">
+                  <span className="font-semibold">
+                    {memberCount} {memberCount === 1 ? "member" : "members"}
+                  </span>
                   <Link
                     to={`/community/${community.id}`}
-                    className="font-semibold text-emerald-700 hover:text-emerald-800"
+                    className="inline-flex items-center gap-1 font-extrabold text-violet-700 transition hover:text-violet-800"
                   >
-                    View community
+                    Open
+                    <ArrowIcon />
                   </Link>
                 </div>
               </div>
@@ -289,11 +308,17 @@ export const CommunityList = () => {
       </div>
 
       {!filteredCommunities.length && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900">No communities found</h3>
-          <p className="mt-2 text-sm text-slate-600">
-            Try a different keyword or create a new community for your topic.
+        <div className="yapster-card p-9 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-50 text-violet-700">
+            <SearchIcon />
+          </div>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-950">No communities found</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            Try another keyword, or create a new community if the conversation you want does not exist yet.
           </p>
+          <Link to="/community/create" className="yapster-button yapster-button--primary mt-5">
+            Create community
+          </Link>
         </div>
       )}
     </div>
