@@ -4,9 +4,10 @@ import { createPortal } from "react-dom";
 interface Props {
   open: boolean;
   title: string;
-  description: string;
+  description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  pendingLabel?: string;
   isPending?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -18,6 +19,7 @@ export const ConfirmDialog = ({
   description,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
+  pendingLabel = "Working...",
   isPending = false,
   onConfirm,
   onCancel,
@@ -53,7 +55,7 @@ export const ConfirmDialog = ({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="yapster-confirm-title"
-        aria-describedby="yapster-confirm-description"
+        aria-describedby={description ? "yapster-confirm-description" : undefined}
         className="w-full max-w-md overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(0,0,0,0.45)]"
       >
         <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
@@ -66,7 +68,7 @@ export const ConfirmDialog = ({
             </span>
             <div className="min-w-0">
               <h2 id="yapster-confirm-title" className="text-lg font-black tracking-[-0.02em] text-slate-950">{title}</h2>
-              <p id="yapster-confirm-description" className="mt-1.5 text-sm leading-6 text-slate-500">{description}</p>
+              {description && <p id="yapster-confirm-description" className="mt-1.5 text-sm leading-6 text-slate-500">{description}</p>}
             </div>
           </div>
 
@@ -85,7 +87,7 @@ export const ConfirmDialog = ({
               disabled={isPending}
               className="inline-flex min-h-10 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-32"
             >
-              {isPending ? "Deleting..." : confirmLabel}
+              {isPending ? pendingLabel : confirmLabel}
             </button>
           </div>
         </div>
