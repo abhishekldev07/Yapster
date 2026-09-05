@@ -32,19 +32,13 @@ export const Home = () => {
             <div className="yapster-feed-hero p-5 sm:p-6">
               <div className="relative z-10 flex items-start justify-between gap-6">
                 <div className="max-w-[580px]">
-                  <div className="mb-4 flex items-center gap-2">
-                    <img src="/yapster-mark.svg" alt="" className="h-8 w-8" />
-                    <span className="text-xs font-extrabold uppercase tracking-[0.18em] text-white/55">
-                      Yapster
-                    </span>
-                  </div>
                   <h1 className="max-w-xl text-2xl font-extrabold leading-tight tracking-[-0.045em] text-white sm:text-[2rem]">
                     {user ? "Your communities, one conversation at a time." : "Find your people. Join the conversation."}
                   </h1>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-[0.95rem]">
                     {user
                       ? "Catch up on discussions from the communities you joined, or jump outside your bubble and discover something new."
-                      : "Yapster is built around interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}
+                      : "Interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}
                   </p>
                 </div>
 
