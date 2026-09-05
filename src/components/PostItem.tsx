@@ -122,7 +122,7 @@ export const PostItem = ({ post }: Props) => {
         )}
       </div>
 
-      <div className="yapster-post-footer px-3 py-2.5 sm:px-4">
+      <div className="border-t border-[var(--y-border)] bg-[var(--y-surface)] px-3 py-2.5 sm:px-4">
         <div className="flex flex-wrap items-center gap-2">
           <LikeButton postId={post.id} />
 
