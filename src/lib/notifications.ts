@@ -1,6 +1,6 @@
 import { supabase } from "../supabase-client";
 
-export type NotificationType = "comment_reply" | "community_moderation" | "moderator_promotion" | string;
+export type NotificationType = "comment_reply" | "community_moderation" | "moderator_promotion" | "mention" | "user_follow" | string;
 
 export interface NotificationActor {
   id: string;
@@ -46,23 +46,15 @@ export const fetchNotificationsForUser = async (
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (unreadOnly) {
-    query = query.eq("read", false);
-  }
+  if (unreadOnly) query = query.eq("read", false);
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
   const notifications = (data ?? []) as NotificationRecord[];
-  const actorIds = Array.from(
-    new Set(
-      notifications
-        .map((notification) => notification.actor_id)
-        .filter((value): value is string => Boolean(value)),
-    ),
-  );
+  const actorIds = Array.from(new Set(notifications.map((notification) => notification.actor_id).filter((value): value is string => Boolean(value))));
 
-  let actorMap = new Map<string, NotificationActor>();
+  const actorMap = new Map<string, NotificationActor>();
   if (actorIds.length) {
     const { data: profiles, error: profileError } = await supabase
       .from("profiles")
@@ -89,45 +81,34 @@ export const fetchNotificationsForUser = async (
 
 export const markNotificationsRead = async (userId: string, notificationIds: number[]) => {
   if (!notificationIds.length) return;
-
-  const { error } = await supabase
-    .from("notifications")
-    .update({ read: true })
-    .eq("recipient_id", userId)
-    .in("id", notificationIds);
-
+  const { error } = await supabase.from("notifications").update({ read: true }).eq("recipient_id", userId).in("id", notificationIds);
   if (error) throw new Error(error.message);
 };
 
 export const markAllNotificationsRead = async (userId: string) => {
-  const { error } = await supabase
-    .from("notifications")
-    .update({ read: true })
-    .eq("recipient_id", userId)
-    .eq("read", false);
-
+  const { error } = await supabase.from("notifications").update({ read: true }).eq("recipient_id", userId).eq("read", false);
   if (error) throw new Error(error.message);
 };
 
 export const formatRelativeTime = (timestamp: string) => {
   const date = new Date(timestamp);
   const deltaMinutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
-
   if (deltaMinutes < 1) return "just now";
   if (deltaMinutes < 60) return `${deltaMinutes}m ago`;
-
   const deltaHours = Math.max(1, Math.round(deltaMinutes / 60));
   if (deltaHours < 24) return `${deltaHours}h ago`;
-
   const deltaDays = Math.max(1, Math.round(deltaHours / 24));
   if (deltaDays < 7) return `${deltaDays}d ago`;
-
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
 export const getNotificationTarget = (notification: NotificationRecord) => {
-  if (notification.type === "comment_reply" && notification.post_id) {
+  if ((notification.type === "comment_reply" || notification.type === "mention") && notification.post_id) {
     return `/post/${notification.post_id}`;
+  }
+
+  if (notification.type === "user_follow" && notification.actor?.username) {
+    return `/profile/${encodeURIComponent(notification.actor.username)}`;
   }
 
   if ((notification.type === "community_moderation" || notification.type === "moderator_promotion") && notification.community_id) {
