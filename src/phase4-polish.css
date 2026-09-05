@@ -1,0 +1,101 @@
+/* Final v1 UI polish. Loaded after the base theme and Phase 2 safeguards. */
+
+/* Yapster should feel confident, not cartoonishly heavy. Keep hierarchy while reducing visual weight. */
+.font-black { font-weight: 700 !important; }
+.font-extrabold { font-weight: 650 !important; }
+.font-bold { font-weight: 600 !important; }
+
+/* Compact action text should be calm and product-like. */
+.yapster-hero-cta,
+.yapster-communities-cta,
+.yapster-create-button,
+.yapster-button {
+  font-weight: 600 !important;
+}
+
+/* Member moderation controls do not need bright white outlines. */
+.yapster-community-page [class*="bg-slate-50/70"] button[class*="border-"] {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Leadership badges are metadata, not attention-grabbing CTAs. */
+.yapster-community-page .bg-orange-50.text-orange-700,
+.yapster-community-page .bg-violet-50.text-violet-700 {
+  background: var(--y-surface-muted) !important;
+  color: var(--y-text-soft) !important;
+  border-color: transparent !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Fast, subtle account-menu motion. */
+.yapster-account-menu {
+  transform-origin: top right;
+  animation: yapster-menu-in 110ms ease-out both;
+}
+.yapster-account-menu.is-closing {
+  animation: yapster-menu-out 90ms ease-in both;
+  pointer-events: none;
+}
+@keyframes yapster-menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes yapster-menu-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-3px) scale(.99); }
+}
+
+/* Reusable discreet menus used in chat. */
+.yapster-popover-menu {
+  min-width: 180px;
+  border: 1px solid var(--y-border);
+  background: var(--y-surface);
+  color: var(--y-text);
+  box-shadow: 0 16px 40px rgba(10, 10, 18, .18);
+}
+.yapster-popover-menu button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+}
+.yapster-popover-menu button:hover { background: var(--y-surface-muted); }
+
+/* Keep message action chrome visible on keyboard focus as well as hover. */
+.yapster-message-row .yapster-message-hover-actions,
+.yapster-inbox-row .yapster-inbox-hover-actions {
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 100ms ease, transform 100ms ease;
+}
+.yapster-message-row:hover .yapster-message-hover-actions,
+.yapster-message-row:focus-within .yapster-message-hover-actions,
+.yapster-inbox-row:hover .yapster-inbox-hover-actions,
+.yapster-inbox-row:focus-within .yapster-inbox-hover-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Native file inputs are replaced by labelled upload controls in the polished forms. */
+.yapster-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; clip-path: inset(50%); }
+.yapster-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 1px solid var(--y-border-strong);
+  background: var(--y-surface-muted);
+  color: var(--y-text);
+  border-radius: .7rem;
+  padding: .55rem .8rem;
+  font-size: .75rem;
+  font-weight: 600;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.yapster-upload-button:hover { border-color: #aaa6b8; background: var(--y-surface); }
+
+html[data-theme="dark"] .yapster-popover-menu { box-shadow: 0 18px 44px rgba(0,0,0,.42); }
