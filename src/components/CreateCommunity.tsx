@@ -14,12 +14,6 @@ const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_ICON_BYTES = 2 * 1024 * 1024;
 const MAX_BANNER_BYTES = 8 * 1024 * 1024;
 
-const readPreview = (file: File, callback: (value: string) => void) => {
-  const reader = new FileReader();
-  reader.onload = () => callback(String(reader.result));
-  reader.readAsDataURL(file);
-};
-
 const uploadCommunityMedia = async (userId: string, file: File, kind: "icon" | "banner"): Promise<UploadResult> => {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error(`${kind === "icon" ? "Icon" : "Banner"} must be PNG, JPG, or WEBP.`);
   const limit = kind === "icon" ? MAX_ICON_BYTES : MAX_BANNER_BYTES;
@@ -31,6 +25,16 @@ const uploadCommunityMedia = async (userId: string, file: File, kind: "icon" | "
   return { path, url: supabase.storage.from("community-media").getPublicUrl(path).data.publicUrl };
 };
 
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace("#", "");
+  const parsed = Number.parseInt(normalized.length === 3 ? normalized.split("").map((value) => value + value).join("") : normalized, 16);
+  return { r: (parsed >> 16) & 255, g: (parsed >> 8) & 255, b: parsed & 255 };
+};
+
+const rgbToHex = (r: number, g: number, b: number) => `#${[r, g, b].map((value) => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0")).join("")}`;
+
+const UploadIcon = () => <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M12 16V5m0 0-4 4m4-4 4 4M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+
 export const CreateCommunity = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -40,8 +44,6 @@ export const CreateCommunity = () => {
   const [category, setCategory] = useState<CommunityCategory>("Other");
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [rules, setRules] = useState<CommunityRuleDraft[]>([{ title: "", description: "" }]);
   const [flairs, setFlairs] = useState<FlairDraft[]>([{ name: "", color: "#7c3aed" }]);
 
@@ -57,12 +59,8 @@ export const CreateCommunity = () => {
         const banner = bannerFile ? await uploadCommunityMedia(user.id, bannerFile, "banner") : null;
         if (banner) uploadedPaths.push(banner.path);
 
-        const cleanRules = rules
-          .map((rule) => ({ title: rule.title.trim(), description: rule.description.trim() }))
-          .filter((rule) => rule.title);
-        const cleanFlairs = flairs
-          .map((flair) => ({ name: flair.name.trim(), color: flair.color }))
-          .filter((flair) => flair.name);
+        const cleanRules = rules.map((rule) => ({ title: rule.title.trim(), description: rule.description.trim() })).filter((rule) => rule.title);
+        const cleanFlairs = flairs.map((flair) => ({ name: flair.name.trim(), color: flair.color })).filter((flair) => flair.name);
 
         const { data, error } = await supabase.rpc("create_community_bundle", {
           p_name: name.trim(),
@@ -86,65 +84,81 @@ export const CreateCommunity = () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["communities"] }),
         queryClient.invalidateQueries({ queryKey: ["community-trend-stats"] }),
+        queryClient.invalidateQueries({ queryKey: ["trending-communities"] }),
       ]);
       navigate(`/community/${communityId}`);
     },
   });
 
   const fieldClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-normal text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
-  const cleanName = name.trim() || "Your community";
+
+  const updateFlairRgb = (index: number, channel: "r" | "g" | "b", rawValue: string) => {
+    const current = hexToRgb(flairs[index].color);
+    const value = Math.max(0, Math.min(255, Number(rawValue) || 0));
+    const next = { ...current, [channel]: value };
+    setFlairs((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, color: rgbToHex(next.r, next.g, next.b) } : item));
+  };
 
   if (!user) {
-    return <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm"><div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" /><div className="p-8 text-center"><img src="/yapster-mark.svg" alt="" className="mx-auto h-12 w-12" /><h2 className="mt-4 text-2xl font-black text-slate-950">Sign in to start a community</h2><p className="mx-auto mt-2 max-w-md text-sm text-slate-500">Create a space, set its identity and rules, and become its first admin.</p><Link to="/login" className="yapster-button yapster-button--primary mt-5">Sign in</Link></div></section>;
+    return <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm"><div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" /><div className="p-8 text-center"><img src="/yapster-mark.svg" alt="" className="mx-auto h-12 w-12" /><h2 className="mt-4 text-2xl font-bold text-slate-950">Sign in to start a community</h2><p className="mx-auto mt-2 max-w-md text-sm text-slate-500">Create a space, set its identity and rules, and become its first admin.</p><Link to="/login" className="yapster-button yapster-button--primary mt-5">Sign in</Link></div></section>;
   }
 
   return (
     <section className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
       <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
-        <form onSubmit={(event) => { event.preventDefault(); mutation.mutate(); }} className="p-5 sm:p-7">
-          <div><h2 className="text-xl font-black text-slate-950">Build your community</h2><p className="mt-1 text-sm text-slate-500">Set up the identity, category, rules, and post flairs before you open the doors.</p></div>
+      <form onSubmit={(event) => { event.preventDefault(); mutation.mutate(); }} className="p-5 sm:p-7 lg:p-8">
+        <div><h2 className="text-xl font-bold text-slate-950">Community details</h2><p className="mt-1 text-sm text-slate-500">Set the identity, rules and posting structure before publishing.</p></div>
 
-          <div className="mt-6 space-y-6">
-            <section className="space-y-4">
-              <div><p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-violet-600">1 · Basics</p></div>
-              <label className="block text-sm font-extrabold text-slate-700">Community name<input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} placeholder="e.g. Indie Game Dev" className={`${fieldClassName} mt-2`} required /></label>
-              <label className="block text-sm font-extrabold text-slate-700">Category<select value={category} onChange={(event) => setCategory(event.target.value as CommunityCategory)} className={`${fieldClassName} mt-2`}>{COMMUNITY_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label className="block text-sm font-extrabold text-slate-700">Description<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} maxLength={500} placeholder="What is this community for?" className={`${fieldClassName} mt-2 resize-y leading-6`} /><span className="mt-1.5 flex justify-end text-[11px] font-medium text-slate-400">{description.length}/500</span></label>
-            </section>
+        <div className="mt-7 space-y-8">
+          <section className="space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-violet-600">1 · Basics</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block text-sm font-semibold text-slate-700">Community name<input value={name} onChange={(event) => setName(event.target.value)} maxLength={80} placeholder="e.g. Indie Game Dev" className={`${fieldClassName} mt-2`} required /></label>
+              <label className="block text-sm font-semibold text-slate-700">Category<select value={category} onChange={(event) => setCategory(event.target.value as CommunityCategory)} className={`${fieldClassName} mt-2`}>{COMMUNITY_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select></label>
+            </div>
+            <label className="block text-sm font-semibold text-slate-700">Description<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} maxLength={500} placeholder="What is this community for?" className={`${fieldClassName} mt-2 resize-y leading-6`} /><span className="mt-1.5 flex justify-end text-[11px] font-medium text-slate-400">{description.length}/500</span></label>
+          </section>
 
-            <section className="border-t border-slate-100 pt-6">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-violet-600">2 · Branding</p>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <label className="block text-sm font-extrabold text-slate-700">Community icon <span className="font-medium text-slate-400">· optional</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0] || null; setIconFile(file); if (file && file.size <= MAX_ICON_BYTES) readPreview(file, setIconPreview); else setIconPreview(null); }} className="mt-2 block w-full text-sm font-normal text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:text-xs file:font-extrabold file:text-violet-700" /><span className="mt-1 block text-[11px] font-medium text-slate-400">Square image · max 2 MB.</span>{iconFile && iconFile.size > MAX_ICON_BYTES && <span className="mt-1 block text-xs text-red-600">Icon is larger than 2 MB.</span>}</label>
-                <label className="block text-sm font-extrabold text-slate-700">Banner <span className="font-medium text-slate-400">· optional</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0] || null; setBannerFile(file); if (file && file.size <= MAX_BANNER_BYTES) readPreview(file, setBannerPreview); else setBannerPreview(null); }} className="mt-2 block w-full text-sm font-normal text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:text-xs file:font-extrabold file:text-violet-700" /><span className="mt-1 block text-[11px] font-medium text-slate-400">Wide image · max 8 MB.</span>{bannerFile && bannerFile.size > MAX_BANNER_BYTES && <span className="mt-1 block text-xs text-red-600">Banner is larger than 8 MB.</span>}</label>
+          <section className="border-t border-slate-100 pt-7">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-violet-600">2 · Community images</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/55 p-4">
+                <div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-slate-800">Community icon</h3><p className="mt-1 text-xs leading-5 text-slate-400">Square PNG, JPG or WEBP · max 2 MB.</p></div>{iconFile && <span className="max-w-36 truncate text-[11px] text-slate-400">{iconFile.name}</span>}</div>
+                <label className="yapster-upload-button mt-4 cursor-pointer"><UploadIcon /> Choose icon<input className="yapster-file-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setIconFile(event.target.files?.[0] || null)} /></label>
+                {iconFile && iconFile.size > MAX_ICON_BYTES && <p className="mt-2 text-xs text-red-600">Icon is larger than 2 MB.</p>}
               </div>
-            </section>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/55 p-4">
+                <div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-slate-800">Cover banner</h3><p className="mt-1 text-xs leading-5 text-slate-400">Wide PNG, JPG or WEBP · max 8 MB.</p></div>{bannerFile && <span className="max-w-36 truncate text-[11px] text-slate-400">{bannerFile.name}</span>}</div>
+                <label className="yapster-upload-button mt-4 cursor-pointer"><UploadIcon /> Choose banner<input className="yapster-file-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setBannerFile(event.target.files?.[0] || null)} /></label>
+                {bannerFile && bannerFile.size > MAX_BANNER_BYTES && <p className="mt-2 text-xs text-red-600">Banner is larger than 8 MB.</p>}
+              </div>
+            </div>
+          </section>
 
-            <section className="border-t border-slate-100 pt-6">
-              <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-violet-600">3 · Rules</p><p className="mt-1 text-xs text-slate-400">You can add up to 10 now and edit them later.</p></div>{rules.length < 10 && <button type="button" onClick={() => setRules((current) => [...current, { title: "", description: "" }])} className="text-xs font-extrabold text-violet-700">+ Add rule</button>}</div>
-              <div className="mt-3 space-y-3">{rules.map((rule, index) => <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3"><div className="flex gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-xs font-black text-violet-700 ring-1 ring-slate-200">{index + 1}</span><div className="min-w-0 flex-1 space-y-2"><input value={rule.title} onChange={(event) => setRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, title: event.target.value } : item))} maxLength={80} placeholder="Rule title" className={fieldClassName} /><textarea value={rule.description} onChange={(event) => setRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, description: event.target.value } : item))} rows={2} maxLength={300} placeholder="What does this rule mean?" className={`${fieldClassName} resize-y`} /></div>{rules.length > 1 && <button type="button" onClick={() => setRules((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="self-start rounded-lg px-2 py-1 text-xs font-black text-red-500">×</button>}</div></div>)}</div>
-            </section>
+          <section className="border-t border-slate-100 pt-7">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-violet-600">3 · Rules</p><p className="mt-1 text-xs text-slate-400">Add up to 10. You can edit them later.</p></div>{rules.length < 10 && <button type="button" onClick={() => setRules((current) => [...current, { title: "", description: "" }])} className="text-xs font-semibold text-violet-700">+ Add rule</button>}</div>
+            <div className="mt-4 space-y-3">{rules.map((rule, index) => <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50/55 p-4"><div className="flex gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-xs font-semibold text-slate-600 ring-1 ring-slate-200">{index + 1}</span><div className="min-w-0 flex-1 grid gap-3 md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]"><input value={rule.title} onChange={(event) => setRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, title: event.target.value } : item))} maxLength={80} placeholder="Rule title" className={fieldClassName} /><textarea value={rule.description} onChange={(event) => setRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, description: event.target.value } : item))} rows={2} maxLength={300} placeholder="What does this rule mean?" className={`${fieldClassName} resize-y`} /></div>{rules.length > 1 && <button type="button" onClick={() => setRules((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="self-start rounded-lg px-2 py-1 text-sm font-medium text-red-500 hover:bg-red-50">×</button>}</div></div>)}</div>
+          </section>
 
-            <section className="border-t border-slate-100 pt-6">
-              <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-violet-600">4 · Post flairs</p><p className="mt-1 text-xs text-slate-400">Optional labels members can attach to posts.</p></div>{flairs.length < 12 && <button type="button" onClick={() => setFlairs((current) => [...current, { name: "", color: "#7c3aed" }])} className="text-xs font-extrabold text-violet-700">+ Add flair</button>}</div>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">{flairs.map((flair, index) => <div key={index} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/60 p-2.5"><input type="color" value={flair.color} onChange={(event) => setFlairs((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, color: event.target.value } : item))} className="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0" aria-label={`Flair ${index + 1} color`} /><input value={flair.name} onChange={(event) => setFlairs((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))} maxLength={40} placeholder="e.g. Discussion" className={`${fieldClassName} min-w-0 flex-1`} />{flairs.length > 1 && <button type="button" onClick={() => setFlairs((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="px-1 text-sm font-black text-red-500">×</button>}</div>)}</div>
-            </section>
-          </div>
+          <section className="border-t border-slate-100 pt-7">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-violet-600">4 · Post flairs</p><p className="mt-1 text-xs text-slate-400">Optional labels members can attach to posts.</p></div>{flairs.length < 12 && <button type="button" onClick={() => setFlairs((current) => [...current, { name: "", color: "#7c3aed" }])} className="text-xs font-semibold text-violet-700">+ Add flair</button>}</div>
+            <div className="mt-4 space-y-3">{flairs.map((flair, index) => {
+              const rgb = hexToRgb(flair.color);
+              return <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50/55 p-4">
+                <div className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_auto_auto] lg:items-end">
+                  <label className="block text-xs font-medium text-slate-500">Flair name<input value={flair.name} onChange={(event) => setFlairs((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item))} maxLength={40} placeholder="e.g. Discussion" className={`${fieldClassName} mt-1.5`} /></label>
+                  <div><span className="block text-xs font-medium text-slate-500">Color</span><div className="mt-1.5 flex items-center gap-2"><input type="color" value={flair.color} onChange={(event) => setFlairs((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, color: event.target.value } : item))} className="h-10 w-12 cursor-pointer rounded-lg border border-slate-200 bg-white p-1" aria-label={`Flair ${index + 1} color`} /><input value={flair.color.toUpperCase()} onChange={(event) => { const value = event.target.value; if (/^#[0-9a-fA-F]{6}$/.test(value)) setFlairs((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, color: value } : item)); }} className="w-24 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-normal text-slate-600 outline-none" aria-label="Hex color" /></div></div>
+                  <div><span className="block text-xs font-medium text-slate-500">RGB</span><div className="mt-1.5 flex gap-1.5">{(["r","g","b"] as const).map((channel) => <label key={channel} className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5"><span className="text-[10px] uppercase text-slate-400">{channel}</span><input type="number" min={0} max={255} value={rgb[channel]} onChange={(event) => updateFlairRgb(index, channel, event.target.value)} className="w-10 border-0 bg-transparent p-0 text-xs font-normal text-slate-700 outline-none" /></label>)}</div></div>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3"><span className="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `${flair.color}20`, color: flair.color }}>{flair.name.trim() || "Flair preview"}</span>{flairs.length > 1 && <button type="button" onClick={() => setFlairs((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="text-xs font-medium text-red-500 hover:text-red-700">Remove</button>}</div>
+              </div>;
+            })}</div>
+          </section>
+        </div>
 
-          {mutation.error && <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">{getFriendlyErrorMessage(mutation.error, "Unable to create community. Please try again.")}</div>}
-          <div className="mt-7 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={() => navigate(-1)} className="yapster-button yapster-button--ghost">Cancel</button><button type="submit" disabled={mutation.isPending || !name.trim() || Boolean(iconFile && iconFile.size > MAX_ICON_BYTES) || Boolean(bannerFile && bannerFile.size > MAX_BANNER_BYTES)} className="yapster-button yapster-button--primary disabled:cursor-not-allowed disabled:opacity-50">{mutation.isPending ? "Creating..." : "Create community"}</button></div>
-        </form>
-
-        <aside className="border-t border-slate-100 bg-slate-50/70 p-5 lg:border-l lg:border-t-0 sm:p-6">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Live preview</p>
-          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="relative h-24 overflow-hidden bg-[#12121b]">{bannerPreview ? <img src={bannerPreview} alt="Banner preview" className="h-full w-full object-cover" /> : <><div className="absolute -left-8 -top-12 h-32 w-32 rounded-full bg-orange-500/30 blur-2xl" /><div className="absolute -right-5 -top-12 h-36 w-36 rounded-full bg-violet-600/40 blur-2xl" /></>}</div>
-            <div className="p-4"><div className="flex items-center gap-3"><span className="-mt-8 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-lg font-black text-violet-800">{iconPreview ? <img src={iconPreview} alt="Icon preview" className="h-full w-full object-cover" /> : cleanName.slice(0,1).toUpperCase()}</span><div className="min-w-0"><strong className="block truncate text-base font-extrabold text-slate-950">{cleanName}</strong><span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-violet-600">{category}</span></div></div><p className="mt-4 text-xs leading-5 text-slate-500">{description.trim() || "A clear description helps people understand what belongs here."}</p><div className="mt-4 flex flex-wrap gap-1.5">{flairs.filter((flair) => flair.name.trim()).slice(0,4).map((flair, index) => <span key={index} className="rounded-full px-2 py-1 text-[10px] font-bold" style={{ backgroundColor: `${flair.color}20`, color: flair.color }}>{flair.name.trim()}</span>)}</div></div>
-          </div>
-          <div className="mt-5 rounded-xl border border-violet-100 bg-violet-50/60 p-3.5"><p className="text-xs font-extrabold text-violet-800">You’ll be the owner</p><p className="mt-1 text-[11px] leading-5 text-violet-700/70">You can edit the identity, rules, flairs, and moderation team after creation.</p></div>
-        </aside>
-      </div>
+        {mutation.error && <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">{getFriendlyErrorMessage(mutation.error, "Unable to create community. Please try again.")}</div>}
+        <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={() => navigate(-1)} className="yapster-button yapster-button--ghost">Cancel</button><button type="submit" disabled={mutation.isPending || !name.trim() || Boolean(iconFile && iconFile.size > MAX_ICON_BYTES) || Boolean(bannerFile && bannerFile.size > MAX_BANNER_BYTES)} className="yapster-button yapster-button--primary disabled:cursor-not-allowed disabled:opacity-50">{mutation.isPending ? "Creating..." : "Create community"}</button></div>
+      </form>
     </section>
   );
 };
