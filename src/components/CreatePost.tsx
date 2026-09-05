@@ -148,7 +148,7 @@ export const CreatePost = () => {
   const cleanPollOptions = pollOptions.map((option) => option.trim()).filter(Boolean);
   const pollIsValid = postType !== "poll" || (cleanPollOptions.length >= 2 && cleanPollOptions.length <= 6 && new Set(cleanPollOptions.map((option) => option.toLowerCase())).size === cleanPollOptions.length);
   const isFormValid = !!user && !!communityId && !!title.trim() && canPost && validLink && pollIsValid && (postType !== "text" || !!content.trim()) && (postType !== "image" || !!selectedFile) && (postType !== "link" || !!linkUrl.trim());
-  const fieldClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-850 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
+  const fieldClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-normal text-slate-850 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -261,6 +261,7 @@ export const CreatePost = () => {
       <div>
         <label htmlFor="content" className="mb-2 flex items-center justify-between gap-3 text-sm font-extrabold text-slate-700"><span>{postType === "text" ? "Body" : postType === "poll" ? "Context" : "Caption / context"}</span><span className="text-[11px] font-semibold text-slate-400">{postType === "text" ? "Required" : "Optional"}</span></label>
         <textarea id="content" value={content} onChange={(event) => setContent(event.target.value)} placeholder={postType === "poll" ? "Add context for your poll if needed..." : "Share the details, your question, recommendation, or point of view..."} className={`${fieldClassName} min-h-36 resize-y leading-6`} rows={7} required={postType === "text"} />
+        <p className="mt-2 text-[11px] font-medium text-slate-400">Mention another Yapster with @username to notify them.</p>
       </div>
 
       {postType === "image" && (
