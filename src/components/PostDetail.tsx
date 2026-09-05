@@ -5,6 +5,7 @@ import { Post } from "./PostList";
 import { supabase } from "../supabase-client";
 import { LikeButton } from "./LikeButton";
 import { SaveButton } from "./SaveButton";
+import { PollCard } from "./PollCard";
 import { CommentSection } from "./CommentSection";
 
 interface Props {
@@ -152,6 +153,8 @@ export const PostDetail = ({ postId }: Props) => {
             <span className="min-w-0 flex-1"><strong className="block break-all text-sm text-slate-900 sm:text-base">{data.link_url}</strong><span className="mt-1 block text-xs font-medium text-slate-400">Open external link</span></span>
           </a>
         )}
+
+        {data.post_type === "poll" && <PollCard postId={postId} />}
 
         {data.image_url && <div className="mt-6 overflow-hidden rounded-[18px] border border-slate-200 bg-slate-100"><img src={data.image_url} alt={data.title} loading="lazy" className="max-h-[680px] w-full object-contain" /></div>}
 
