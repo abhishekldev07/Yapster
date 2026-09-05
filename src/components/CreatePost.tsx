@@ -31,9 +31,14 @@ interface Flair {
   color: string;
 }
 
+interface CommunityRule {
+  id: number;
+  title: string;
+  description: string;
+}
+
 const createPost = async (post: PostInput, imageFile: File | null) => {
   let imageUrl: string | null = null;
-
   if (imageFile) {
     const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, "-");
     const filePath = `${post.user_id}/${Date.now()}-${safeName}`;
@@ -41,36 +46,26 @@ const createPost = async (post: PostInput, imageFile: File | null) => {
     if (uploadError) throw new Error(uploadError.message);
     imageUrl = supabase.storage.from("post-images").getPublicUrl(filePath).data.publicUrl;
   }
-
-  const { error } = await supabase.from("posts").insert({
-    ...post,
-    image_url: imageUrl,
-  });
-
+  const { error } = await supabase.from("posts").insert({ ...post, image_url: imageUrl });
   if (error) throw new Error(error.message);
 };
 
 const fetchUserMembershipStatus = async (communityId: number, userId: string): Promise<MembershipStatus | null> => {
-  const { data, error } = await supabase
-    .from("community_members")
-    .select("role, muted, banned")
-    .eq("community_id", communityId)
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data, error } = await supabase.from("community_members").select("role, muted, banned").eq("community_id", communityId).eq("user_id", userId).maybeSingle();
   if (error) throw new Error(error.message);
   return data as MembershipStatus | null;
 };
 
 const fetchFlairs = async (communityId: number): Promise<Flair[]> => {
-  const { data, error } = await supabase
-    .from("post_flairs")
-    .select("id, name, color")
-    .eq("community_id", communityId)
-    .eq("is_active", true)
-    .order("position")
-    .order("id");
+  const { data, error } = await supabase.from("post_flairs").select("id, name, color").eq("community_id", communityId).eq("is_active", true).order("position").order("id");
   if (error) throw new Error(error.message);
   return (data ?? []) as Flair[];
+};
+
+const fetchRules = async (communityId: number): Promise<CommunityRule[]> => {
+  const { data, error } = await supabase.from("community_rules").select("id, title, description").eq("community_id", communityId).order("position").order("id");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as CommunityRule[];
 };
 
 const ImageIcon = () => (
@@ -109,6 +104,12 @@ export const CreatePost = () => {
   const { data: flairs = [] } = useQuery<Flair[], Error>({
     queryKey: ["post-flairs", communityId],
     queryFn: () => (communityId ? fetchFlairs(communityId) : Promise.resolve([])),
+    enabled: !!communityId,
+    retry: false,
+  });
+  const { data: rules = [] } = useQuery<CommunityRule[], Error>({
+    queryKey: ["community-rules", communityId],
+    queryFn: () => (communityId ? fetchRules(communityId) : Promise.resolve([])),
     enabled: !!communityId,
     retry: false,
   });
@@ -184,6 +185,20 @@ export const CreatePost = () => {
           {communities?.map((community) => <option key={community.id} value={community.id}>{community.name}</option>)}
         </select>
       </div>
+
+      {communityId && rules.length > 0 && (
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
+          <div className="flex items-center justify-between gap-3"><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-orange-700">Community rules</p><span className="text-[11px] font-bold text-orange-600/70">Read before posting</span></div>
+          <ol className="mt-3 space-y-2.5">
+            {rules.map((rule, index) => (
+              <li key={rule.id} className="flex items-start gap-2.5 text-sm text-slate-700">
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[10px] font-black text-orange-700 ring-1 ring-orange-200">{index + 1}</span>
+                <span><strong className="font-extrabold">{rule.title}</strong>{rule.description && <span className="mt-0.5 block text-xs leading-5 text-slate-500">{rule.description}</span>}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {communityId && (isBanned || isMuted) && (
         <div className={`rounded-xl border p-4 ${isBanned ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}>
