@@ -30,7 +30,6 @@ interface ReportRow {
 interface TargetPreview {
   title: string;
   body: string;
-  author: string;
   href: string;
 }
 
@@ -84,7 +83,11 @@ export const CommunityModerationPage = () => {
   const { data: community, isLoading: communityLoading } = useQuery<CommunitySummary | null, Error>({
     queryKey: ["moderation-community", communityId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("communities").select("id, name, created_by").eq("id", communityId).maybeSingle();
+      const { data, error } = await supabase
+        .from("communities")
+        .select("id, name, created_by")
+        .eq("id", communityId)
+        .maybeSingle();
       if (error) throw new Error(error.message);
       return data as CommunitySummary | null;
     },
@@ -108,7 +111,11 @@ export const CommunityModerationPage = () => {
     retry: false,
   });
 
-  const canModerate = Boolean(user && community && (community.created_by === user.id || (membership?.role === "moderator" && !membership?.banned)));
+  const canModerate = Boolean(
+    user
+    && community
+    && (community.created_by === user.id || (membership?.role === "moderator" && !membership?.banned))
+  );
 
   const { data: reports = [], isLoading: reportsLoading, error: reportsError } = useQuery<ReportRow[], Error>({
     queryKey: ["community-reports", communityId],
@@ -129,33 +136,27 @@ export const CommunityModerationPage = () => {
     queryKey: ["report-target-previews", communityId, reports.map((report) => `${report.target_type}:${report.target_id}`).join(",")],
     queryFn: async () => {
       const result = new Map<string, TargetPreview>();
-      const postIds = reports.filter((report) => report.target_type === "post").map((report) => report.target_id);
-      const commentIds = reports.filter((report) => report.target_type === "comment").map((report) => report.target_id);
+      const postIds = Array.from(new Set(reports.filter((report) => report.target_type === "post").map((report) => report.target_id)));
+      const commentIds = Array.from(new Set(reports.filter((report) => report.target_type === "comment").map((report) => report.target_id)));
 
       if (postIds.length) {
-        const { data, error } = await supabase.from("posts").select("id, title, content, user_id").in("id", Array.from(new Set(postIds)));
+        const { data, error } = await supabase.from("posts").select("id, title, content").in("id", postIds);
         if (error) throw new Error(error.message);
-        (data ?? []).forEach((post) => {
-          result.set(`post:${post.id}`, {
-            title: post.title || `Post #${post.id}`,
-            body: post.content || "No text body",
-            author: post.user_id ? String(post.user_id).slice(0, 8) : "Unknown author",
-            href: `/post/${post.id}`,
-          });
-        });
+        (data ?? []).forEach((post) => result.set(`post:${post.id}`, {
+          title: post.title || `Post #${post.id}`,
+          body: post.content || "No text body",
+          href: `/post/${post.id}`,
+        }));
       }
 
       if (commentIds.length) {
-        const { data, error } = await supabase.from("comments").select("id, post_id, content, author").in("id", Array.from(new Set(commentIds)));
+        const { data, error } = await supabase.from("comments").select("id, post_id, content, author").in("id", commentIds);
         if (error) throw new Error(error.message);
-        (data ?? []).forEach((comment) => {
-          result.set(`comment:${comment.id}`, {
-            title: `Comment by ${comment.author || "member"}`,
-            body: comment.content || "Comment content unavailable",
-            author: comment.author || "Unknown author",
-            href: `/post/${comment.post_id}`,
-          });
-        });
+        (data ?? []).forEach((comment) => result.set(`comment:${comment.id}`, {
+          title: `Comment by ${comment.author || "member"}`,
+          body: comment.content || "Comment content unavailable",
+          href: `/post/${comment.post_id}`,
+        }));
       }
 
       return result;
@@ -199,28 +200,17 @@ export const CommunityModerationPage = () => {
     queryClient.invalidateQueries({ queryKey: ["posts"] });
     queryClient.invalidateQueries({ queryKey: ["communityPost", communityId] });
     queryClient.invalidateQueries({ queryKey: ["comments"] });
+    queryClient.invalidateQueries({ queryKey: ["my-reports"] });
   };
 
   const resolveMutation = useMutation({
     mutationFn: async ({ report, status }: { report: ReportRow; status: "resolved" | "dismissed" }) => {
       if (!user) throw new Error("Sign in to moderate this community.");
-      const now = new Date().toISOString();
-      const { error: reportError } = await supabase
-        .from("reports")
-        .update({ status, reviewed_at: now, reviewed_by: user.id })
-        .eq("id", report.id)
-        .eq("community_id", communityId);
-      if (reportError) throw new Error(reportError.message);
-
-      const { error: logError } = await supabase.from("moderation_log").insert({
-        community_id: communityId,
-        actor_id: user.id,
-        action_type: status === "resolved" ? "report_resolved" : "report_dismissed",
-        target_type: "report",
-        target_id: report.id,
-        note: `${reasonLabels[report.reason] || report.reason} · ${report.target_type} #${report.target_id}`,
+      const { error } = await supabase.rpc("review_report", {
+        p_report_id: report.id,
+        p_action: status,
       });
-      if (logError) throw new Error(logError.message);
+      if (error) throw new Error(error.message);
     },
     onSuccess: refreshModeration,
   });
@@ -228,31 +218,10 @@ export const CommunityModerationPage = () => {
   const removeMutation = useMutation({
     mutationFn: async (report: ReportRow) => {
       if (!user) throw new Error("Sign in to moderate this community.");
-      if (report.target_type === "post") {
-        const { error } = await supabase.from("posts").delete().eq("id", report.target_id).eq("community_id", communityId);
-        if (error) throw new Error(error.message);
-      } else {
-        const { error } = await supabase.from("comments").delete().eq("id", report.target_id);
-        if (error) throw new Error(error.message);
-      }
-
-      const now = new Date().toISOString();
-      const { error: reportError } = await supabase
-        .from("reports")
-        .update({ status: "resolved", reviewed_at: now, reviewed_by: user.id })
-        .eq("id", report.id)
-        .eq("community_id", communityId);
-      if (reportError) throw new Error(reportError.message);
-
-      const { error: logError } = await supabase.from("moderation_log").insert({
-        community_id: communityId,
-        actor_id: user.id,
-        action_type: report.target_type === "post" ? "post_removed" : "comment_removed",
-        target_type: report.target_type,
-        target_id: report.target_id,
-        note: `Removed after report #${report.id}: ${reasonLabels[report.reason] || report.reason}`,
+      const { error } = await supabase.rpc("remove_reported_content", {
+        p_report_id: report.id,
       });
-      if (logError) throw new Error(logError.message);
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       setRemoveTarget(null);
@@ -260,8 +229,14 @@ export const CommunityModerationPage = () => {
     },
   });
 
-  const queueReports = useMemo(() => reports.filter((report) => report.status === "open" || report.status === "reviewing"), [reports]);
-  const historyReports = useMemo(() => reports.filter((report) => report.status === "resolved" || report.status === "dismissed"), [reports]);
+  const queueReports = useMemo(
+    () => reports.filter((report) => report.status === "open" || report.status === "reviewing"),
+    [reports]
+  );
+  const historyReports = useMemo(
+    () => reports.filter((report) => report.status === "resolved" || report.status === "dismissed"),
+    [reports]
+  );
   const visibleReports = tab === "queue" ? queueReports : historyReports;
   const actionError = resolveMutation.error || removeMutation.error;
 
@@ -300,18 +275,32 @@ export const CommunityModerationPage = () => {
           ))}
         </div>
 
-        {actionError && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{getFriendlyErrorMessage(actionError, "The moderation action could not be completed.")}</div>}
+        {actionError && (
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+            {getFriendlyErrorMessage(actionError, "The moderation action could not be completed.")}
+          </div>
+        )}
 
         {tab === "log" ? (
           <section className="yapster-card p-5 sm:p-6">
-            <div className="flex items-end justify-between gap-3"><div><p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-violet-600">Audit trail</p><h2 className="mt-1 text-xl font-black text-slate-950">Moderation log</h2></div><span className="text-xs font-bold text-slate-400">Latest 100</span></div>
+            <div className="flex items-end justify-between gap-3">
+              <div><p className="text-[11px] font-extrabold uppercase tracking-[0.13em] text-violet-600">Audit trail</p><h2 className="mt-1 text-xl font-black text-slate-950">Moderation log</h2></div>
+              <span className="text-xs font-bold text-slate-400">Latest 100</span>
+            </div>
             <div className="mt-5 divide-y divide-slate-100">
-              {logLoading ? <p className="py-8 text-center text-sm text-slate-400">Loading moderation log...</p> : modLog.length ? modLog.map((item) => (
+              {logLoading ? (
+                <p className="py-8 text-center text-sm text-slate-400">Loading moderation log...</p>
+              ) : modLog.length ? modLog.map((item) => (
                 <div key={item.id} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between">
-                  <div><p className="text-sm font-extrabold text-slate-900">{actionLabels[item.action_type] || item.action_type}</p><p className="mt-1 text-xs leading-5 text-slate-500">{item.note || `${item.target_type}${item.target_id ? ` #${item.target_id}` : ""}`}</p></div>
+                  <div>
+                    <p className="text-sm font-extrabold text-slate-900">{actionLabels[item.action_type] || item.action_type}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">{item.note || `${item.target_type}${item.target_id ? ` #${item.target_id}` : ""}`}</p>
+                  </div>
                   <time className="shrink-0 text-[11px] font-semibold text-slate-400">{formatDate(item.created_at)}</time>
                 </div>
-              )) : <div className="py-10 text-center"><p className="font-extrabold text-slate-800">No moderation actions yet</p><p className="mt-1 text-sm text-slate-400">Actions taken from the report queue will appear here.</p></div>}
+              )) : (
+                <div className="py-10 text-center"><p className="font-extrabold text-slate-800">No moderation actions yet</p><p className="mt-1 text-sm text-slate-400">Actions taken from the report queue will appear here.</p></div>
+              )}
             </div>
           </section>
         ) : reportsLoading ? (
@@ -349,7 +338,12 @@ export const CommunityModerationPage = () => {
                       </div>
                     </div>
 
-                    {report.details && <div className="mt-3 rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3"><p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-orange-600">Reporter context</p><p className="mt-1 text-sm leading-6 text-slate-600">{report.details}</p></div>}
+                    {report.details && (
+                      <div className="mt-3 rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3">
+                        <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-orange-600">Reporter context</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{report.details}</p>
+                      </div>
+                    )}
 
                     {(report.status === "open" || report.status === "reviewing") && (
                       <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
@@ -377,8 +371,9 @@ export const CommunityModerationPage = () => {
       <ConfirmDialog
         open={!!removeTarget}
         title={`Remove reported ${removeTarget?.target_type || "content"}?`}
-        description="This permanently removes the content and resolves the report. The action will be recorded in the community moderation log."
+        description="This permanently removes the content and resolves the report in one transaction. The action will be recorded in the community moderation log."
         confirmLabel={`Remove ${removeTarget?.target_type || "content"}`}
+        pendingLabel="Removing..."
         isPending={removeMutation.isPending}
         onCancel={() => setRemoveTarget(null)}
         onConfirm={() => removeTarget && removeMutation.mutate(removeTarget)}
