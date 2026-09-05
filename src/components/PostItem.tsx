@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { LikeButton } from "./LikeButton";
 import { SaveButton } from "./SaveButton";
+import { PollCard } from "./PollCard";
 import { Post } from "./PostList";
 
 interface Props {
@@ -64,90 +65,43 @@ export const PostItem = ({ post }: Props) => {
     <article className="yapster-post-card">
       <div className="p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <Link
-            to={communityHref}
-            className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black text-violet-800 ring-1 ring-black/5"
-            aria-label={`Open ${communityName}`}
-          >
-            {post.community_avatar_url ? (
-              <img src={post.community_avatar_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              communityName.slice(0, 1).toUpperCase()
-            )}
+          <Link to={communityHref} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-xs font-black text-violet-800 ring-1 ring-black/5" aria-label={`Open ${communityName}`}>
+            {post.community_avatar_url ? <img src={post.community_avatar_url} alt="" className="h-full w-full object-cover" /> : communityName.slice(0, 1).toUpperCase()}
           </Link>
 
           <div className="min-w-0 flex-1 pt-0.5">
             <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
-              <Link to={communityHref} className="truncate font-extrabold text-slate-800 transition hover:text-violet-700">
-                {communityName}
-              </Link>
-              <span aria-hidden="true">•</span>
-              <span>{formattedDate}</span>
-              {authorName && (
-                <>
-                  <span aria-hidden="true">•</span>
-                  <Link to={`/profile/${encodeURIComponent(authorName)}`} className="font-semibold text-slate-500 hover:text-violet-700">
-                    @{authorName}
-                  </Link>
-                </>
-              )}
+              <Link to={communityHref} className="truncate font-extrabold text-slate-800 transition hover:text-violet-700">{communityName}</Link>
+              <span aria-hidden="true">•</span><span>{formattedDate}</span>
+              {authorName && <><span aria-hidden="true">•</span><Link to={`/profile/${encodeURIComponent(authorName)}`} className="font-semibold text-slate-500 hover:text-violet-700">@{authorName}</Link></>}
             </div>
-            <span
-              className="mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]"
-              style={post.flair_color ? { backgroundColor: `${post.flair_color}20`, color: post.flair_color } : undefined}
-            >
-              {postTypeLabel(post)}
-            </span>
+            <span className="mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={post.flair_color ? { backgroundColor: `${post.flair_color}20`, color: post.flair_color } : undefined}>{postTypeLabel(post)}</span>
           </div>
 
-          <button type="button" aria-label="More post options" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border-0 bg-transparent text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
-            ⋯
-          </button>
+          <button type="button" aria-label="More post options" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border-0 bg-transparent text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">⋯</button>
         </div>
 
-        <Link to={`/post/${post.id}`} className="mt-4 block">
-          <h2 className="break-words text-[1.18rem] font-extrabold leading-[1.35] tracking-[-0.025em] text-slate-950 transition hover:text-violet-800 sm:text-[1.32rem]">
-            {post.title}
-          </h2>
-        </Link>
+        <Link to={`/post/${post.id}`} className="mt-4 block"><h2 className="break-words text-[1.18rem] font-extrabold leading-[1.35] tracking-[-0.025em] text-slate-950 transition hover:text-violet-800 sm:text-[1.32rem]">{post.title}</h2></Link>
 
-        {previewText && (
-          <Link to={`/post/${post.id}`} className="mt-2.5 block">
-            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
-              {previewText.length > 300 ? `${previewText.slice(0, 300)}…` : previewText}
-            </p>
-          </Link>
-        )}
+        {previewText && <Link to={`/post/${post.id}`} className="mt-2.5 block"><p className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{previewText.length > 300 ? `${previewText.slice(0, 300)}…` : previewText}</p></Link>}
 
         {post.post_type === "link" && post.link_url && (
           <a href={post.link_url} target="_blank" rel="noreferrer" className="mt-4 flex items-center gap-3 rounded-[15px] border border-slate-200 bg-slate-50 p-4 transition hover:border-violet-300 hover:bg-violet-50/40">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-violet-700 ring-1 ring-slate-200"><LinkIcon /></span>
-            <span className="min-w-0 flex-1">
-              <strong className="block truncate text-sm text-slate-800">{post.link_url}</strong>
-              <span className="mt-0.5 block text-xs text-slate-400">Open external link</span>
-            </span>
+            <span className="min-w-0 flex-1"><strong className="block truncate text-sm text-slate-800">{post.link_url}</strong><span className="mt-0.5 block text-xs text-slate-400">Open external link</span></span>
           </a>
         )}
 
-        {post.image_url && (
-          <Link to={`/post/${post.id}`} className="mt-4 block overflow-hidden rounded-[15px] border border-slate-200 bg-slate-100">
-            <img src={post.image_url} alt={post.title} className="max-h-[520px] w-full object-cover" loading="lazy" />
-          </Link>
-        )}
+        {post.post_type === "poll" && <PollCard postId={post.id} />}
+
+        {post.image_url && <Link to={`/post/${post.id}`} className="mt-4 block overflow-hidden rounded-[15px] border border-slate-200 bg-slate-100"><img src={post.image_url} alt={post.title} className="max-h-[520px] w-full object-cover" loading="lazy" /></Link>}
       </div>
 
       <div className="border-t border-[var(--y-border)] bg-[var(--y-surface)] px-3 py-2.5 sm:px-4">
         <div className="flex flex-wrap items-center gap-2">
           <LikeButton postId={post.id} />
-          <Link to={`/post/${post.id}`} className="yapster-post-action">
-            <CommentIcon />
-            <span>{post.comment_count ?? 0}</span>
-            <span className="hidden sm:inline">comments</span>
-          </Link>
-          <button type="button" onClick={sharePost} className="yapster-post-action">
-            <ShareIcon />
-            <span className="hidden sm:inline">{shareState === "copied" ? "Copied" : "Share"}</span>
-          </button>
+          <Link to={`/post/${post.id}`} className="yapster-post-action"><CommentIcon /><span>{post.comment_count ?? 0}</span><span className="hidden sm:inline">comments</span></Link>
+          <button type="button" onClick={sharePost} className="yapster-post-action"><ShareIcon /><span className="hidden sm:inline">{shareState === "copied" ? "Copied" : "Share"}</span></button>
           <SaveButton postId={post.id} />
         </div>
       </div>
