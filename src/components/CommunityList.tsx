@@ -252,8 +252,8 @@ export const CommunityList = () => {
               <div className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <Link to={`/community/${community.id}`} className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">
-                      {community.name?.slice(0, 1).toUpperCase() || "C"}
+                    <span className="yapster-community-initial grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">
+                      {community.name?.trim().slice(0, 1).toUpperCase() || "C"}
                     </span>
                     <span className="min-w-0">
                       <strong className="block truncate text-base font-extrabold text-slate-950 transition group-hover:text-violet-700">
