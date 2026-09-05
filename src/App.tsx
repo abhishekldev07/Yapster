@@ -8,6 +8,7 @@ import { CommunitiesPage } from "./pages/CommunitiesPage";
 import { CommunityPage } from "./pages/CommunityPage";
 import { CommunityRulesPage } from "./pages/CommunityRulesPage";
 import { CommunitySettingsPage } from "./pages/CommunitySettingsPage";
+import { CommunityModerationPage } from "./pages/CommunityModerationPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -38,6 +39,7 @@ function App() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/community/:id/rules" element={<CommunityRulesPage />} />
         <Route path="/community/:id/settings" element={<CommunitySettingsPage />} />
+        <Route path="/community/:id/moderation" element={<CommunityModerationPage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Home />} />
