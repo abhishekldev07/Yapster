@@ -6,6 +6,7 @@ import { PostPage } from "./pages/PostPage";
 import { CreateCommunityPage } from "./pages/CreateCommunityPage";
 import { CommunitiesPage } from "./pages/CommunitiesPage";
 import { CommunityPage } from "./pages/CommunityPage";
+import { CommunitySettingsPage } from "./pages/CommunitySettingsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -34,6 +35,7 @@ function App() {
         <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/community/:id/settings" element={<CommunitySettingsPage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Home />} />
