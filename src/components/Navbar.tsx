@@ -96,6 +96,7 @@ export const Navbar = () => {
               <div className="yapster-account-menu__identity"><strong>{profileUsername}</strong><span>{user.email}</span></div>
               <Link to={profileHref} onClick={() => setMenuOpen(false)}>View profile</Link>
               <Link to="/saved" onClick={() => setMenuOpen(false)}>Saved posts</Link>
+              <Link to="/reports" onClick={() => setMenuOpen(false)}>My reports</Link>
               <Link to="/communities" onClick={() => setMenuOpen(false)}>My communities</Link>
               <button type="button" onClick={signOut}>Sign out</button>
             </div>

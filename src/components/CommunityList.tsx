@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
 import { getFriendlyErrorMessage } from "../lib/auth";
 
 export type CommunityRole = "owner" | "moderator" | "member";
+type CommunitySort = "trending" | "new" | "largest";
 
 export interface Community {
   id: number;
@@ -17,6 +18,12 @@ export interface Community {
   member_count?: number | null;
 }
 
+interface TrendStat {
+  trend_score: number;
+  recent_posts: number;
+  recent_comments: number;
+}
+
 export const fetchCommunities = async (): Promise<Community[]> => {
   const { data, error } = await supabase
     .from("communities")
@@ -25,6 +32,23 @@ export const fetchCommunities = async (): Promise<Community[]> => {
 
   if (error) throw new Error(error.message);
   return data as Community[];
+};
+
+const fetchCommunityTrendStats = async (): Promise<Record<number, TrendStat>> => {
+  const { data, error } = await supabase
+    .from("community_trending")
+    .select("id, trend_score, recent_posts, recent_comments");
+
+  if (error) throw new Error(error.message);
+  const result: Record<number, TrendStat> = {};
+  (data ?? []).forEach((row) => {
+    result[Number(row.id)] = {
+      trend_score: Number(row.trend_score ?? 0),
+      recent_posts: Number(row.recent_posts ?? 0),
+      recent_comments: Number(row.recent_comments ?? 0),
+    };
+  });
+  return result;
 };
 
 const fetchUserMemberships = async (userId: string): Promise<Record<number, true>> => {
@@ -86,12 +110,19 @@ export const CommunityList = () => {
   const queryClient = useQueryClient();
   const { user, isLoading: authLoading, signInWithGitHub } = useAuth();
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<CommunitySort>("trending");
   const [pendingCommunityId, setPendingCommunityId] = useState<number | null>(null);
   const [membershipError, setMembershipError] = useState<string | null>(null);
 
   const { data, error, isLoading } = useQuery<Community[], Error>({
     queryKey: ["communities"],
     queryFn: fetchCommunities,
+  });
+
+  const trendQuery = useQuery<Record<number, TrendStat>, Error>({
+    queryKey: ["community-trend-stats"],
+    queryFn: fetchCommunityTrendStats,
+    staleTime: 60_000,
   });
 
   const memberCountsQuery = useQuery<Record<number, number>, Error>({
@@ -150,6 +181,8 @@ export const CommunityList = () => {
       queryClient.invalidateQueries({ queryKey: ["community-member-counts"] });
       queryClient.invalidateQueries({ queryKey: ["community-member-count", variables.communityId] });
       queryClient.invalidateQueries({ queryKey: ["community-membership", variables.communityId] });
+      queryClient.invalidateQueries({ queryKey: ["community-trend-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["trending-communities"] });
     },
     onError: (mutationError) => {
       setMembershipError(getFriendlyErrorMessage(mutationError, "We could not update your community membership."));
@@ -159,16 +192,24 @@ export const CommunityList = () => {
 
   const membershipSet = new Set(Object.keys(membershipQuery.data ?? {}).map(Number));
 
-  const filteredCommunities = (data ?? []).filter((community) => {
+  const filteredCommunities = useMemo(() => {
     const searchText = query.trim().toLowerCase();
-    if (!searchText) return true;
+    const visible = (data ?? []).filter((community) => {
+      if (!searchText) return true;
+      return (
+        community.name.toLowerCase().includes(searchText) ||
+        community.description.toLowerCase().includes(searchText) ||
+        (community.category ?? "").toLowerCase().includes(searchText)
+      );
+    });
 
-    return (
-      community.name.toLowerCase().includes(searchText) ||
-      community.description.toLowerCase().includes(searchText) ||
-      (community.category ?? "").toLowerCase().includes(searchText)
-    );
-  });
+    return [...visible].sort((a, b) => {
+      if (sort === "new") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sort === "largest") return (memberCountsQuery.data?.[b.id] ?? 0) - (memberCountsQuery.data?.[a.id] ?? 0);
+      return (trendQuery.data?.[b.id]?.trend_score ?? 0) - (trendQuery.data?.[a.id]?.trend_score ?? 0)
+        || new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [data, memberCountsQuery.data, query, sort, trendQuery.data]);
 
   const handleMembershipToggle = (communityId: number, isJoined: boolean) => {
     if (!user) {
@@ -209,24 +250,45 @@ export const CommunityList = () => {
         </div>
       )}
 
-      <div className="yapster-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-        <label className="relative block flex-1" htmlFor="community-search">
-          <span className="sr-only">Search communities</span>
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-            <SearchIcon />
-          </span>
-          <input
-            id="community-search"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search communities by name, category, or topic"
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60"
-          />
-        </label>
-        <div className="flex items-center gap-2 px-1 text-xs font-semibold text-slate-400 sm:px-0">
-          <span>{filteredCommunities.length}</span>
-          <span>{filteredCommunities.length === 1 ? "community" : "communities"}</span>
+      <div className="yapster-card flex flex-col gap-3 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <label className="relative block flex-1" htmlFor="community-search">
+            <span className="sr-only">Search communities</span>
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <SearchIcon />
+            </span>
+            <input
+              id="community-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search communities by name, category, or topic"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60"
+            />
+          </label>
+          <div className="flex items-center gap-2 px-1 text-xs font-semibold text-slate-400 sm:px-0">
+            <span>{filteredCommunities.length}</span>
+            <span>{filteredCommunities.length === 1 ? "community" : "communities"}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+          <span className="mr-1 text-[11px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Sort</span>
+          {([
+            ["trending", "Trending"],
+            ["new", "Newest"],
+            ["largest", "Largest"],
+          ] as [CommunitySort, string][]).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setSort(value)}
+              aria-pressed={sort === value}
+              className={`rounded-lg px-3 py-1.5 text-xs font-extrabold transition ${sort === value ? "bg-slate-950 text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"}`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -235,7 +297,10 @@ export const CommunityList = () => {
           const isOwner = isOwnerOfCommunity(community, user?.id ?? null);
           const isMember = !isOwner && membershipSet.has(community.id);
           const memberCount = memberCountsQuery.data?.[community.id] ?? 0;
+          const trend = trendQuery.data?.[community.id];
+          const recentActivity = (trend?.recent_posts ?? 0) + (trend?.recent_comments ?? 0);
           const isPending = pendingCommunityId === community.id && joinOrLeaveMembership.isPending;
+          const cleanName = community.name.trim() || "Community";
 
           let buttonLabel = "Join";
           if (authLoading) buttonLabel = "Loading...";
@@ -253,11 +318,11 @@ export const CommunityList = () => {
                 <div className="flex items-start justify-between gap-3">
                   <Link to={`/community/${community.id}`} className="flex min-w-0 items-center gap-3">
                     <span className="yapster-community-initial grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-sm font-black text-violet-800 ring-1 ring-black/5">
-                      {community.name?.trim().slice(0, 1).toUpperCase() || "C"}
+                      {cleanName.slice(0, 1).toUpperCase() || "C"}
                     </span>
                     <span className="min-w-0">
                       <strong className="block truncate text-base font-extrabold text-slate-950 transition group-hover:text-violet-700">
-                        {community.name}
+                        {cleanName}
                       </strong>
                       <span className="mt-0.5 block text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
                         {community.category || "Community"}
@@ -291,7 +356,9 @@ export const CommunityList = () => {
 
                 <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400">
                   <span className="font-semibold">
-                    {memberCount} {memberCount === 1 ? "member" : "members"}
+                    {sort === "trending" && recentActivity > 0
+                      ? `${recentActivity} recent ${recentActivity === 1 ? "interaction" : "interactions"}`
+                      : `${memberCount} ${memberCount === 1 ? "member" : "members"}`}
                   </span>
                   <Link
                     to={`/community/${community.id}`}

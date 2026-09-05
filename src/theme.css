@@ -140,6 +140,18 @@ html[data-theme="dark"] .yapster-community-initial {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.055);
 }
 
+/* Pastel brand gradients must become real dark surfaces in dark mode. */
+html[data-theme="dark"] .bg-gradient-to-br.from-orange-50.via-pink-50.to-violet-50,
+html[data-theme="dark"] [class*="from-orange-50"][class*="via-pink-50"][class*="to-violet-50"] {
+  background-image: linear-gradient(135deg, #2a1915 0%, #2a1728 52%, #211735 100%) !important;
+  border-color: #3c2d52 !important;
+}
+
+html[data-theme="dark"] .bg-gradient-to-br.from-orange-100.via-pink-100.to-violet-100,
+html[data-theme="dark"] [class*="from-orange-100"][class*="via-pink-100"][class*="to-violet-100"] {
+  background-image: linear-gradient(135deg, #342019 0%, #361b30 52%, #291e45 100%) !important;
+}
+
 /* Tailwind utility compatibility for screens still using utility-first Phase 1 markup. */
 html[data-theme="dark"] .bg-white {
   background-color: var(--y-surface) !important;

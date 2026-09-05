@@ -3,14 +3,16 @@ import { Link } from "react-router";
 import { Comment } from "./CommentSection";
 import { CommentVoteButton } from "./CommentVoteButton";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { ReportDialog } from "./ReportDialog";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFriendlyErrorMessage } from "../lib/auth";
 
 interface Props {
   comment: Comment & { children?: Comment[] };
   postId: number;
+  communityId?: number | null;
 }
 
 const createReply = async (replyContent: string, postId: number, parentCommentId: number, userId?: string, author?: string) => {
@@ -37,16 +39,35 @@ const DeleteIcon = () => (
   </svg>
 );
 
-export const CommentItem = ({ comment, postId }: Props) => {
+const FlagIcon = () => (
+  <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <path d="M5.5 17V4m0 1h7.8l-1.2 2.5L13.3 10H5.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export const CommentItem = ({ comment, postId, communityId }: Props) => {
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment.content);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isOwnComment = Boolean(user && user.id === comment.user_id);
+
+  const { data: postCommunityId = null } = useQuery<number | null, Error>({
+    queryKey: ["comment-post-community", postId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("posts").select("community_id").eq("id", postId).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data?.community_id != null ? Number(data.community_id) : null;
+    },
+    enabled: !communityId,
+    staleTime: 5 * 60 * 1000,
+  });
+  const resolvedCommunityId = communityId ?? postCommunityId;
 
   const invalidateCommentQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["comments", postId] });
@@ -179,7 +200,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
                     <Link to="/login" className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-450 transition hover:text-violet-700"><ReplyIcon />Sign in to reply</Link>
                   )}
 
-                  {isOwnComment && (
+                  {isOwnComment ? (
                     <>
                       <button
                         type="button"
@@ -201,7 +222,11 @@ export const CommentItem = ({ comment, postId }: Props) => {
                         <DeleteIcon />{deleteMutation.isPending ? "Deleting..." : "Delete"}
                       </button>
                     </>
-                  )}
+                  ) : user && resolvedCommunityId ? (
+                    <button type="button" onClick={() => setReportDialogOpen(true)} className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-450 transition hover:text-red-600">
+                      <FlagIcon />Report
+                    </button>
+                  ) : null}
 
                   {replyCount > 0 && (
                     <button type="button" onClick={() => setIsCollapsed((previous) => !previous)} className="inline-flex items-center gap-1 text-xs font-extrabold text-violet-700 transition hover:text-violet-800" aria-expanded={!isCollapsed}>
@@ -232,7 +257,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
         )}
 
         {comment.children && comment.children.length > 0 && !isCollapsed && (
-          <div className="mt-3 space-y-3">{comment.children.map((child) => <CommentItem key={child.id} comment={child} postId={postId} />)}</div>
+          <div className="mt-3 space-y-3">{comment.children.map((child) => <CommentItem key={child.id} comment={child} postId={postId} communityId={resolvedCommunityId} />)}</div>
         )}
       </div>
 
@@ -245,6 +270,10 @@ export const CommentItem = ({ comment, postId }: Props) => {
         onCancel={() => setDeleteDialogOpen(false)}
         onConfirm={() => deleteMutation.mutate()}
       />
+
+      {resolvedCommunityId && (
+        <ReportDialog open={reportDialogOpen} communityId={resolvedCommunityId} targetType="comment" targetId={comment.id} onClose={() => setReportDialogOpen(false)} />
+      )}
     </>
   );
 };

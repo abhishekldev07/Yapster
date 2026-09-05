@@ -14,6 +14,15 @@ interface ProfileRecord {
   created_at: string | null;
 }
 
+interface ReputationRecord {
+  user_id: string;
+  post_count: number;
+  comment_count: number;
+  post_score: number;
+  comment_score: number;
+  yap_score: number;
+}
+
 const fetchProfileByUsername = async (username: string): Promise<ProfileRecord | null> => {
   const { data, error } = await supabase
     .from("profiles")
@@ -61,6 +70,22 @@ export const ProfilePage = () => {
     queryFn: () => (profileUsername ? fetchProfileByUsername(profileUsername) : Promise.resolve(null)),
     enabled: !!profileUsername,
     retry: false,
+  });
+
+  const { data: reputation } = useQuery<ReputationRecord | null, Error>({
+    queryKey: ["profile-reputation", profile?.id],
+    queryFn: async () => {
+      if (!profile) return null;
+      const { data, error: reputationError } = await supabase
+        .from("profile_reputation")
+        .select("user_id, post_count, comment_count, post_score, comment_score, yap_score")
+        .eq("user_id", profile.id)
+        .maybeSingle();
+      if (reputationError) throw new Error(reputationError.message);
+      return data as ReputationRecord | null;
+    },
+    enabled: !!profile?.id,
+    staleTime: 30_000,
   });
 
   const isOwnProfile = !!user && !!profile && user.id === profile.id;
@@ -143,6 +168,10 @@ export const ProfilePage = () => {
     ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : "Recently";
   const inputClassName = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-800 placeholder:font-normal placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
+  const yapScore = Number(reputation?.yap_score ?? 0);
+  const postScore = Number(reputation?.post_score ?? 0);
+  const commentScore = Number(reputation?.comment_score ?? 0);
+  const contributionCount = Number(reputation?.post_count ?? 0) + Number(reputation?.comment_count ?? 0);
 
   return (
     <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
@@ -181,28 +210,52 @@ export const ProfilePage = () => {
             </div>
 
             {!isEditing ? (
-              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-                <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">About</p>
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-650">
-                    {profile.bio || "This Yapster has not written a bio yet."}
-                  </p>
+              <>
+                <div className="mt-6 grid gap-3 sm:grid-cols-4">
+                  <div className="overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-orange-50 via-pink-50 to-violet-50 p-4 sm:col-span-2">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-violet-600">YapScore</p>
+                    <div className="mt-2 flex items-end justify-between gap-4">
+                      <strong className="text-3xl font-black tracking-[-0.04em] text-slate-950">{yapScore.toLocaleString()}</strong>
+                      <span className="text-xs font-semibold text-slate-500">Net community reputation</span>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Post score</p>
+                    <strong className="mt-2 block text-xl font-black text-slate-900">{postScore.toLocaleString()}</strong>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Comment score</p>
+                    <strong className="mt-2 block text-xl font-black text-slate-900">{commentScore.toLocaleString()}</strong>
+                  </div>
                 </div>
 
-                <aside className="rounded-2xl border border-slate-100 bg-white p-5 ring-1 ring-slate-100">
-                  <h2 className="text-sm font-extrabold text-slate-950">Profile details</h2>
-                  <dl className="mt-4 space-y-4 text-sm">
-                    <div>
-                      <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Username</dt>
-                      <dd className="mt-1 font-bold text-slate-700">@{profile.username || profileUsername}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Joined Yapster</dt>
-                      <dd className="mt-1 font-bold text-slate-700">{joinedDate}</dd>
-                    </div>
-                  </dl>
-                </aside>
-              </div>
+                <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">About</p>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-650">
+                      {profile.bio || "This Yapster has not written a bio yet."}
+                    </p>
+                  </div>
+
+                  <aside className="rounded-2xl border border-slate-100 bg-white p-5 ring-1 ring-slate-100">
+                    <h2 className="text-sm font-extrabold text-slate-950">Profile details</h2>
+                    <dl className="mt-4 space-y-4 text-sm">
+                      <div>
+                        <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Username</dt>
+                        <dd className="mt-1 font-bold text-slate-700">@{profile.username || profileUsername}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Joined Yapster</dt>
+                        <dd className="mt-1 font-bold text-slate-700">{joinedDate}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">Contributions</dt>
+                        <dd className="mt-1 font-bold text-slate-700">{contributionCount.toLocaleString()} posts & comments</dd>
+                      </div>
+                    </dl>
+                  </aside>
+                </div>
+              </>
             ) : (
               <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
