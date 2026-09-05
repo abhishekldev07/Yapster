@@ -147,7 +147,7 @@ export const MessagesPage = () => {
       .channel(`direct-messages:${activeConversationId}:${user.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "direct_messages", filter: `conversation_id=eq.${activeConversationId}` },
+        { event: "*", schema: "public", table: "direct_messages", filter: `conversation_id=eq.${activeConversationId}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ["direct-messages", activeConversationId] });
           queryClient.invalidateQueries({ queryKey: ["message-inbox", user.id] });
