@@ -39,7 +39,7 @@ select
   c.id,
   c.name,
   c.description,
-  coalesce(ms.member_count, 0)::bigint as member_count,
+  (coalesce(ms.member_count, 0) + case when c.created_by is not null then 1 else 0 end)::bigint as member_count,
   coalesce(ps.recent_posts, 0)::bigint as recent_posts,
   coalesce(cs.recent_comments, 0)::bigint as recent_comments,
   coalesce(ps.recent_post_score, 0)::bigint as recent_post_score,
@@ -48,7 +48,7 @@ select
     coalesce(ps.recent_posts, 0) * 4
     + coalesce(cs.recent_comments, 0) * 1.5
     + greatest(coalesce(ps.recent_post_score, 0), 0) * 2
-    + ln(coalesce(ms.member_count, 0) + 1) * 2
+    + ln(coalesce(ms.member_count, 0) + case when c.created_by is not null then 2 else 1 end) * 2
   )::numeric as trend_score
 from public.communities c
 left join member_stats ms on ms.community_id = c.id
