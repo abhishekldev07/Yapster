@@ -46,14 +46,14 @@ export const LoginPage = () => {
         <AuthField label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" />
         <div>
           <AuthField label="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" />
-          <Link to="/forgot-password" className="mt-2 block text-right text-sm font-semibold text-emerald-700 hover:text-emerald-800">Forgot password?</Link>
+          <Link to="/forgot-password" className="mt-2 block text-right text-sm font-semibold text-violet-700 hover:text-violet-800">Forgot password?</Link>
         </div>
-        <button disabled={isLoading} className="h4up-button h4up-button--primary w-full disabled:cursor-wait disabled:opacity-60">
+        <button disabled={isLoading} className="yapster-button yapster-button--primary w-full disabled:cursor-wait disabled:opacity-60">
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
         <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />or<span className="h-px flex-1 bg-slate-200" /></div>
-        <button type="button" onClick={signInWithGitHub} className="h4up-button h4up-button--ghost w-full">Continue with GitHub</button>
-        <p className="text-center text-sm text-slate-600">New to H4UP? <Link to="/signup" className="font-semibold text-emerald-700">Create an account</Link></p>
+        <button type="button" onClick={signInWithGitHub} className="yapster-button yapster-button--ghost w-full">Continue with GitHub</button>
+        <p className="text-center text-sm text-slate-600">New to Yapster? <Link to="/signup" className="font-semibold text-violet-700 hover:text-violet-800">Create an account</Link></p>
       </form>
     </AuthLayout>
   );
