@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="left" x1="108" y1="72" x2="324" y2="364" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB000"/>
+      <stop offset="0.45" stop-color="#FF5A1F"/>
+      <stop offset="1" stop-color="#F00078"/>
+    </linearGradient>
+    <linearGradient id="right" x1="404" y1="70" x2="251" y2="326" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D28FF"/>
+      <stop offset="0.55" stop-color="#8B18E6"/>
+      <stop offset="1" stop-color="#C3139A"/>
+    </linearGradient>
+    <linearGradient id="stem" x1="225" y1="238" x2="306" y2="421" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E90054"/>
+      <stop offset="0.55" stop-color="#FA0B72"/>
+      <stop offset="1" stop-color="#B30068"/>
+    </linearGradient>
+    <filter id="shadow" x="55" y="38" width="405" height="410" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#10021D" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M404 67H331C318 67 306 73 298 84L223 191L265 261L420 91C429 80 421 67 404 67Z" fill="url(#right)"/>
+    <path d="M107 67H181C196 67 209 74 218 87L307 220C317 235 322 252 322 270V355C322 374 311 391 294 399L244 423C226 431 206 418 206 398V257L91 92C82 79 90 67 107 67Z" fill="url(#stem)"/>
+    <path d="M107 67H181C196 67 209 74 218 87L307 220C317 235 322 252 322 270V309L263 273C245 262 230 248 219 231L90 92C82 79 90 67 107 67Z" fill="url(#left)"/>
+    <path d="M219 231C230 248 245 262 263 273L322 309V336C322 352 313 367 299 375L218 319C210 313 206 304 206 294V257L219 231Z" fill="#6D0757" fill-opacity="0.55"/>
+  </g>
+</svg>
