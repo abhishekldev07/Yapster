@@ -9,6 +9,7 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
+import { SavedPostsPage } from "./pages/SavedPostsPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -27,6 +28,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/" element={<Home />} />
         <Route path="/create" element={<CreatePostPage />} />
+        <Route path="/saved" element={<SavedPostsPage />} />
         <Route path="/post/:id" element={<PostPage />} />
         <Route path="/community/create" element={<CreateCommunityPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
