@@ -1,0 +1,242 @@
+/* Targeted mobile/tablet safeguards only.
+   Desktop intentionally inherits the established Yapster layout unchanged. */
+
+@media (max-width: 1023px) {
+  .yapster-messages-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 0 !important;
+  }
+
+  .yapster-messages-thread,
+  .yapster-messages-inbox,
+  .yapster-messages-scroll {
+    min-width: 0;
+  }
+
+  .yapster-messages-scroll {
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .yapster-app {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .yapster-mobile-nav {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  /* Keep the existing Home proportions; only prevent intrinsic flex widths from escaping the phone. */
+  .yapster-feed-hero,
+  .yapster-feed-hero > div:first-child,
+  .yapster-feed-hero > div:first-child > div:first-child,
+  .yapster-feed-hero [class*="max-w-[580px]"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .yapster-feed-hero > div:first-child {
+    width: 100% !important;
+  }
+
+  .yapster-feed-hero h1,
+  .yapster-feed-hero p {
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  /* Mobile chat is a true single-pane inbox/thread view. */
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell > .yapster-messages-page-header {
+    display: none !important;
+  }
+
+  .yapster-messages-page.is-thread-open {
+    padding-top: 6px !important;
+  }
+
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-messages-layout {
+    width: 100%;
+    border-radius: 16px !important;
+  }
+
+  .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(100dvh - 154px);
+    min-height: 320px !important;
+  }
+
+  .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100%;
+  }
+
+  .yapster-messages-scroll {
+    padding: 14px 12px !important;
+  }
+
+  .yapster-message-row {
+    gap: 4px !important;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 78% !important;
+  }
+
+  .yapster-message-hover-actions {
+    flex: 0 0 auto;
+    z-index: 30;
+  }
+
+  /* A received-message reaction strip expands left from the action buttons;
+     an own-message strip expands right. This keeps both inside the viewport. */
+  .yapster-message-row.justify-start .yapster-message-hover-actions > div[class*="bottom-full"] {
+    left: auto !important;
+    right: 0 !important;
+    top: calc(100% + 6px) !important;
+    bottom: auto !important;
+    margin: 0 !important;
+  }
+
+  .yapster-message-row.justify-end .yapster-message-hover-actions > div[class*="bottom-full"] {
+    left: 0 !important;
+    right: auto !important;
+    top: calc(100% + 6px) !important;
+    bottom: auto !important;
+    margin: 0 !important;
+  }
+
+  .yapster-messages-scroll > div.space-y-3 {
+    padding-bottom: 46px;
+  }
+
+  .yapster-message-composer-shell {
+    position: relative;
+    z-index: 24;
+    padding: 10px !important;
+  }
+
+  .yapster-message-composer-shell > div:last-child {
+    min-width: 0 !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .yapster-message-composer {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    flex: 0 0 auto;
+  }
+
+  .yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"] {
+    left: 0 !important;
+    right: auto !important;
+    width: min(18rem, calc(100vw - 28px)) !important;
+    max-width: calc(100vw - 28px) !important;
+  }
+
+  /* Touch devices must not depend on hover to discover message controls. */
+  .yapster-message-row .yapster-message-hover-actions,
+  .yapster-inbox-row .yapster-inbox-hover-actions {
+    opacity: .72 !important;
+    transform: none !important;
+  }
+
+  .yapster-message-row .yapster-message-hover-actions:focus-within,
+  .yapster-inbox-row .yapster-inbox-hover-actions:focus-within {
+    opacity: 1 !important;
+  }
+
+  /* visualViewport is maintained by chat-interactions.ts. */
+  html.yapster-keyboard-open body {
+    padding-bottom: 0 !important;
+  }
+
+  html.yapster-keyboard-open .yapster-mobile-nav {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 16px) !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(var(--yapster-visual-height, 100dvh) - 68px) !important;
+    min-height: 240px !important;
+    max-height: none !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-scroll {
+    min-height: 0 !important;
+    padding-top: 12px !important;
+    padding-bottom: 10px !important;
+  }
+
+  html.yapster-keyboard-open .yapster-message-composer-shell {
+    flex: 0 0 auto;
+    padding: 9px !important;
+    padding-bottom: max(9px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Dark loading skeletons remain visible on phones. */
+  html[data-theme="dark"] [aria-label="Loading discussions"] .bg-slate-100 {
+    background: #292936 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 76% !important;
+  }
+
+  .yapster-message-composer-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    min-height: 38px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}
