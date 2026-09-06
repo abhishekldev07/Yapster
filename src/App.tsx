@@ -25,7 +25,7 @@ import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 
 function App() {
   return (
-    <div className="min-h-screen pt-[68px] max-[760px]:pt-[60px]">
+    <div className="yapster-app min-h-screen pt-[68px] max-[760px]:pt-[60px]">
       <Navbar />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
