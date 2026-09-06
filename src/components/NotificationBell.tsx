@@ -76,7 +76,7 @@ export const NotificationBell = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-3 w-[360px] max-w-[calc(100vw-24px)] overflow-hidden rounded-[16px] border border-slate-200 bg-white text-slate-900 shadow-[0_20px_60px_rgba(8,8,14,0.22)]">
+        <div className="yapster-notification-menu absolute right-0 z-50 mt-3 w-[360px] max-w-[calc(100vw-24px)] overflow-hidden rounded-[16px] border border-slate-200 bg-white text-slate-900 shadow-[0_20px_60px_rgba(8,8,14,0.22)]">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
             <div>
               <h3 className="text-sm font-extrabold text-slate-950">Notifications</h3>
@@ -116,19 +116,11 @@ export const NotificationBell = () => {
                     >
                       <div className="mt-0.5 shrink-0">
                         {actorAvatar ? (
-                          <img
-                            src={actorAvatar}
-                            alt=""
-                            className="h-9 w-9 rounded-xl border border-slate-200 object-cover"
-                          />
+                          <img src={actorAvatar} alt="" className="h-9 w-9 rounded-xl border border-slate-200 object-cover" />
                         ) : isSystemNotification ? (
-                          <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#101017]">
-                            <img src="/yapster-mark.svg" alt="" className="h-6 w-6" />
-                          </div>
+                          <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#101017]"><img src="/yapster-mark.svg" alt="" className="h-6 w-6" /></div>
                         ) : (
-                          <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-xs font-black text-slate-600 ring-1 ring-slate-200">
-                            {(actor?.display_name || actor?.username || "U").slice(0, 1).toUpperCase()}
-                          </div>
+                          <div className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-xs font-black text-slate-600 ring-1 ring-slate-200">{(actor?.display_name || actor?.username || "U").slice(0, 1).toUpperCase()}</div>
                         )}
                       </div>
 
@@ -147,16 +139,7 @@ export const NotificationBell = () => {
           </div>
 
           <div className="border-t border-slate-100 p-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                navigate("/notifications");
-              }}
-              className="w-full rounded-lg px-3 py-2 text-center text-xs font-extrabold text-violet-700 transition hover:bg-violet-50 hover:text-violet-800"
-            >
-              View all notifications
-            </button>
+            <button type="button" onClick={() => { setIsOpen(false); navigate("/notifications"); }} className="w-full rounded-lg px-3 py-2 text-center text-xs font-extrabold text-violet-700 transition hover:bg-violet-50 hover:text-violet-800">View all notifications</button>
           </div>
         </div>
       )}
