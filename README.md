@@ -2,33 +2,28 @@
 
 **Communities worth talking about.**
 
-Yapster is a modern community-driven discussion platform built around interest-based spaces, posts, voting, and threaded conversations. The product is evolving from its original forum prototype into a polished Reddit-inspired social platform with its own identity and design system.
+Yapster is a community-first social platform for discovering interest-based spaces, sharing posts, joining threaded discussions, and connecting with other members.
 
-## Product direction
+## Features
 
-Yapster is **community-first**, not follower-first. People discover or create communities around interests, share posts, vote on useful content, and take part in nested discussions.
-
-Current product pillars:
-
-- Interest-based communities
-- Community membership and moderation
-- Text and image posts
-- Upvotes and downvotes
-- Threaded comments and replies
-- Search across posts, communities, and people
-- User profiles
-- Notifications
-- Responsive desktop and mobile experience
+- Interest-based communities with categories, rules, flairs, icons, and banners
+- Text, image, link, and poll posts
+- Hot, New, Top, Following, and discovery feeds
+- Post and comment voting, saved posts, and YapScore reputation
+- Threaded comments, replies, mentions, and deep-linked notifications
+- Community moderation with reports, member controls, and moderation history
+- User profiles, follows, blocking, and public activity
+- One-to-one messaging with realtime updates, reactions, replies, read receipts, and message controls
+- Responsive light and dark themes for desktop and mobile
 
 ## Tech stack
 
-- **React 18**
-- **TypeScript**
-- **Vite**
-- **Tailwind CSS 4**
-- **TanStack Query**
-- **Supabase** for Postgres, Auth, Storage, and backend services
-- **Vercel** for deployment
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS 4
+- TanStack Query
+- Supabase — PostgreSQL, Auth, Storage, Realtime, and Row Level Security
+- Vercel
 
 ## Local development
 
@@ -38,7 +33,7 @@ Current product pillars:
 - npm
 - A Supabase project
 
-### Install
+### Setup
 
 ```bash
 npm install
@@ -48,7 +43,7 @@ Create a `.env` file in the project root:
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+VITE_SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```
 
 Start the development server:
@@ -57,62 +52,35 @@ Start the development server:
 npm run dev
 ```
 
-Build for production:
+Run a production build:
 
 ```bash
 npm run build
+```
+
+Run lint checks:
+
+```bash
+npm run lint
 ```
 
 ## Project structure
 
 ```text
 src/
-  components/   Reusable product UI and community/post components
-  context/      Authentication context
-  lib/          Shared helpers
-  pages/        Route-level pages
-  App.tsx       Application routes and shell
-  index.css     Yapster design system and global styles
-supabase/       Supabase-related project files
+  components/   Shared UI and product components
+  context/      Authentication state
+  lib/          Shared helpers and domain logic
+  pages/        Route-level screens
+supabase/
+  migrations/   Database schema and policy migrations
 public/         Brand and static assets
 ```
 
-## Roadmap
+## Deployment
 
-### Phase 1 — Brand and product UI
-
-- H4UP → Yapster rebrand
-- Yapster logo, favicon, metadata, and visual language
-- New navigation and mobile bottom bar
-- Home/feed redesign
-- Post card and voting redesign
-- Community discovery redesign
-- Authentication redesign
-- Community, profile, create-post, search, and notification polish
-
-### Phase 2 — Core community completeness
-
-- Rich post types
-- Feed sorting and ranking
-- Community rules and flairs
-- Saved posts
-- Comment improvements
-- Reputation system
-
-### Phase 3 — Moderation and safety
-
-- Reporting
-- Moderator queue and logs
-- Platform administration
-- Expanded moderation controls
-
-### Phase 4 — Discovery and growth
-
-- Trending communities and topics
-- Better recommendations
-- Expanded notifications
-- Reputation and profile depth
+The frontend is deployed on Vercel and uses Supabase for backend services. Production environment variables must provide the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values used by the target Supabase project.
 
 ---
 
-Yapster is an independent product in active development.
+Yapster is an independent community platform built with React, TypeScript, Supabase, and Vercel.

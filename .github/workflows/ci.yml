@@ -1,9 +1,9 @@
-name: Phase 3 CI
+name: CI
 
 on:
   push:
     branches:
-      - phase-3-trust-discovery
+      - main
   pull_request:
     branches:
       - main
@@ -14,6 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
