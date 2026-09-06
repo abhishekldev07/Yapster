@@ -123,7 +123,7 @@ export const ProfileSocialActions = ({ profileId, profileUsername, isOwnProfile 
             }}
             className={isFollowing ? "yapster-button yapster-button--ghost" : "yapster-button yapster-button--primary"}
           >
-            {followMutation.isPending ? "Updating..." : isFollowing ? "Unfollow" : `Follow @${profileUsername}`}
+            {followMutation.isPending ? "Updating..." : isFollowing ? "Unfollow" : "Follow"}
           </button>
 
           <button
