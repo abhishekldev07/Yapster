@@ -13,6 +13,7 @@ interface CommunityRecord {
   icon_url: string | null;
   banner_url: string | null;
 }
+interface MembershipRecord { role: string | null; banned: boolean | null; }
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_ICON_BYTES = 2 * 1024 * 1024;
@@ -58,6 +59,21 @@ export const ManageCommunityPage = () => {
   const community = communityQuery.data;
   const isOwner = Boolean(user && community?.created_by === user.id);
 
+  const membershipQuery = useQuery<MembershipRecord | null, Error>({
+    queryKey: ["manage-community-role", communityId, user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase.from("community_members").select("role, banned").eq("community_id", communityId).eq("user_id", user.id).maybeSingle();
+      if (error) throw new Error(error.message);
+      return data as MembershipRecord | null;
+    },
+    enabled: !!user && !!community && !isOwner,
+    retry: false,
+  });
+
+  const isModerator = Boolean(membershipQuery.data?.role === "moderator" && !membershipQuery.data?.banned);
+  const canManage = isOwner || isModerator;
+
   useEffect(() => {
     if (!community || !isOwner || editorReady) return;
     setName(community.name);
@@ -72,7 +88,7 @@ export const ManageCommunityPage = () => {
       if (error) throw new Error(error.message);
       return count ?? 0;
     },
-    enabled: isOwner,
+    enabled: canManage,
     retry: false,
   });
 
@@ -104,9 +120,9 @@ export const ManageCommunityPage = () => {
     },
   });
 
-  if (communityQuery.isLoading) return <main className="pb-16 pt-7"><div className="mx-auto max-w-5xl px-4 sm:px-6"><div className="yapster-card animate-pulse p-8"><div className="h-8 w-64 rounded bg-slate-100" /><div className="mt-6 h-52 rounded-2xl bg-slate-100" /></div></div></main>;
+  if (communityQuery.isLoading || (!!user && !!community && !isOwner && membershipQuery.isLoading)) return <main className="pb-16 pt-7"><div className="mx-auto max-w-5xl px-4 sm:px-6"><div className="yapster-card animate-pulse p-8"><div className="h-8 w-64 rounded bg-slate-100" /><div className="mt-6 h-52 rounded-2xl bg-slate-100" /></div></div></main>;
   if (!community) return <main className="pb-16 pt-7"><div className="mx-auto max-w-3xl px-4 sm:px-6"><div className="yapster-card p-8 text-center"><h1 className="text-xl font-bold text-slate-950">Community not found</h1></div></div></main>;
-  if (!user || !isOwner) return <main className="pb-16 pt-7"><div className="mx-auto max-w-3xl px-4 sm:px-6"><div className="yapster-card p-9 text-center"><h1 className="text-2xl font-bold text-slate-950">Owner access required</h1><p className="mt-2 text-sm text-slate-500">Only the community owner can open the owner tools page.</p><Link to={`/community/${communityId}`} className="yapster-button yapster-button--primary mt-5">Back to community</Link></div></div></main>;
+  if (!user || !canManage) return <main className="pb-16 pt-7"><div className="mx-auto max-w-3xl px-4 sm:px-6"><div className="yapster-card p-9 text-center"><h1 className="text-2xl font-bold text-slate-950">Manager access required</h1><p className="mt-2 text-sm text-slate-500">Only the community owner and active moderators can open these management tools.</p><Link to={`/community/${communityId}`} className="yapster-button yapster-button--primary mt-5">Back to community</Link></div></div></main>;
 
   const fieldClass = "w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-normal text-slate-800 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60";
   const openReports = reportsQuery.data ?? 0;
@@ -116,9 +132,9 @@ export const ManageCommunityPage = () => {
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <header className="mb-7">
           <Link to={`/community/${communityId}`} className="yapster-back-community">← Back to community</Link>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-slate-400">Owner tools</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-slate-400">{isOwner ? "Owner tools" : "Moderator tools"}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-[-0.04em] text-slate-950">Manage community</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Moderation, members, organization, and community identity in one place.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Moderation, members, and community organization in one place.</p>
         </header>
 
         <section className="grid gap-3 sm:grid-cols-3">
@@ -127,7 +143,7 @@ export const ManageCommunityPage = () => {
           <Link to={`/community/${communityId}/settings`} className="yapster-card group p-4 transition hover:border-slate-300"><h2 className="text-sm font-semibold text-slate-900">Rules & flairs</h2><p className="mt-1 text-xs leading-5 text-slate-500">Set standards and organize posts.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-600">Open <Arrow /></span></Link>
         </section>
 
-        <section id="community-details" className="yapster-card mt-6 scroll-mt-24 p-5 sm:p-6">
+        {isOwner && <section id="community-details" className="yapster-card mt-6 scroll-mt-24 p-5 sm:p-6">
           <div><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-slate-400">Community details</p><h2 className="mt-1 text-xl font-bold text-slate-950">Identity & appearance</h2><p className="mt-1 text-sm text-slate-500">Update the public name, description, icon, and cover banner.</p></div>
 
           <form onSubmit={(event) => { event.preventDefault(); saveMutation.mutate(); }} className="mt-5">
@@ -153,7 +169,7 @@ export const ManageCommunityPage = () => {
             {saveMutation.isSuccess && <p className="mt-4 text-sm font-medium text-emerald-600">Community details saved.</p>}
             <div className="mt-5 flex justify-end"><button type="submit" disabled={saveMutation.isPending || !name.trim()} className="yapster-button yapster-button--primary disabled:opacity-50">{saveMutation.isPending ? "Saving..." : "Save community details"}</button></div>
           </form>
-        </section>
+        </section>}
       </div>
     </main>
   );
