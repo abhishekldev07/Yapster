@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabase-client";
+import { MessageButton } from "./MessageButton";
 import { NotificationBell } from "./NotificationBell";
 
 interface CurrentProfile {
@@ -35,15 +36,56 @@ const MoonIcon = () => (<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20
 
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const location = useLocation();
   const { signInWithGitHub, signOut, user } = useAuth();
+
+  const closeMenu = () => {
+    if (!menuOpen || menuClosing) return;
+    setMenuClosing(true);
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = window.setTimeout(() => {
+      setMenuOpen(false);
+      setMenuClosing(false);
+      closeTimerRef.current = null;
+    }, 90);
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem("yapster-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      closeMenu();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen, menuClosing]);
+
+  useEffect(() => {
+    if (menuOpen) closeMenu();
+  }, [location.pathname]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
 
   const { data: currentProfile } = useQuery({
     queryKey: ["profile-navbar", user?.id],
@@ -81,8 +123,9 @@ export const Navbar = () => {
             {user ? (
               <>
                 <Link to="/create" className="yapster-create-button"><PlusIcon /><span>Create</span></Link>
+                <MessageButton />
                 <NotificationBell />
-                <button type="button" className="yapster-profile-trigger" onClick={() => setMenuOpen((current) => !current)} aria-expanded={menuOpen} aria-label="Open account menu">
+                <button ref={triggerRef} type="button" className="yapster-profile-trigger" onClick={() => { if (menuOpen) closeMenu(); else { setMenuClosing(false); setMenuOpen(true); } }} aria-expanded={menuOpen && !menuClosing} aria-label="Open account menu">
                   {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{profileUsername.slice(0, 1).toUpperCase()}</span>}
                 </button>
               </>
@@ -92,13 +135,14 @@ export const Navbar = () => {
           </div>
 
           {user && menuOpen && (
-            <div className="yapster-account-menu">
+            <div ref={menuRef} className={`yapster-account-menu ${menuClosing ? "is-closing" : ""}`}>
               <div className="yapster-account-menu__identity"><strong>{profileUsername}</strong><span>{user.email}</span></div>
-              <Link to={profileHref} onClick={() => setMenuOpen(false)}>View profile</Link>
-              <Link to="/saved" onClick={() => setMenuOpen(false)}>Saved posts</Link>
-              <Link to="/reports" onClick={() => setMenuOpen(false)}>My reports</Link>
-              <Link to="/communities" onClick={() => setMenuOpen(false)}>My communities</Link>
-              <button type="button" onClick={signOut}>Sign out</button>
+              <Link to={profileHref} onClick={closeMenu}>View profile</Link>
+              <Link to="/messages" onClick={closeMenu}>Messages</Link>
+              <Link to="/saved" onClick={closeMenu}>Saved posts</Link>
+              <Link to="/reports" onClick={closeMenu}>My reports</Link>
+              <Link to="/communities" onClick={closeMenu}>My communities</Link>
+              <button type="button" onClick={() => { closeMenu(); void signOut(); }}>Sign out</button>
             </div>
           )}
         </div>

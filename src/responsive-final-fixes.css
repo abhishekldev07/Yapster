@@ -1,0 +1,203 @@
+/* Final responsive corrections from real-device review. Loaded after responsive.css. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.yapster-app main > div.mx-auto {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Keep the feed hero genuinely fluid on phones. The desktop flex row was still allowing
+   the copy block to keep a wider intrinsic width and get clipped at the right edge. */
+@media (max-width: 760px) {
+  .yapster-feed-hero > div:first-child {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-feed-hero > div:first-child > div:first-child,
+  .yapster-feed-hero [class*="max-w-[580px]"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .yapster-feed-hero h1,
+  .yapster-feed-hero p {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .yapster-feed-hero > div:nth-child(2) {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-feed-hero > div:nth-child(2) > div {
+    max-width: 100% !important;
+  }
+}
+
+/* Dark loading placeholders need enough contrast to read as loading rather than a blank card. */
+html[data-theme="dark"] [aria-label="Loading discussions"] .bg-slate-100 {
+  background: #292936 !important;
+}
+
+html[data-theme="dark"] [aria-label="Loading discussions"] .yapster-card {
+  border-color: #30303d !important;
+}
+
+/* Message actions stay compact and attached to the bubble. */
+.yapster-message-hover-actions {
+  flex: 0 0 auto;
+  z-index: 5;
+}
+
+.yapster-message-row.justify-end .yapster-message-hover-actions {
+  margin-right: 2px;
+}
+
+.yapster-message-row.justify-start .yapster-message-hover-actions {
+  margin-left: 2px;
+}
+
+/* The quick-reaction strip used to open above the action button and was clipped by the
+   scroll container for messages near the top. Open it downward instead. */
+.yapster-message-hover-actions > div[class*="bottom-full"] {
+  top: calc(100% + 6px) !important;
+  bottom: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Leave a small interaction gutter after the last message so a downward reaction strip
+   also has room near the bottom of the thread. */
+.yapster-messages-scroll > div.space-y-3 {
+  padding-bottom: 46px;
+}
+
+/* Conversation chrome remains in place while only the message history scrolls. */
+.yapster-messages-thread > div:first-child[class*="border-b"] {
+  position: sticky;
+  top: 0;
+  z-index: 24;
+  background: var(--y-surface) !important;
+}
+
+.yapster-message-composer-shell {
+  position: relative;
+  z-index: 24;
+  background: var(--y-surface) !important;
+}
+
+/* Phone keyboard state. visualViewport values/classes are maintained by chat-interactions.ts. */
+@media (max-width: 760px) {
+  html.yapster-keyboard-open body {
+    padding-bottom: 0 !important;
+  }
+
+  html.yapster-keyboard-open .yapster-mobile-nav {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 16px) !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open {
+    min-height: 0 !important;
+    padding-top: 6px !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open > .yapster-messages-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(var(--yapster-visual-height, 100dvh) - 68px) !important;
+    min-height: 240px !important;
+    max-height: none !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-scroll {
+    min-height: 0 !important;
+    padding-top: 12px !important;
+    padding-bottom: 10px !important;
+  }
+
+  html.yapster-keyboard-open .yapster-message-composer-shell {
+    flex: 0 0 auto;
+    padding: 9px !important;
+    padding-bottom: max(9px, env(safe-area-inset-bottom)) !important;
+  }
+
+  html.yapster-keyboard-open .yapster-message-composer-shell > div:last-child {
+    align-items: flex-end !important;
+  }
+
+  /* Keep the composer and all three controls inside narrow phone widths. */
+  .yapster-message-composer-shell > div:last-child {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-message-composer {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    flex: 0 0 auto;
+  }
+
+  /* Composer emoji panel stays inside the visible phone viewport. */
+  .yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"] {
+    left: 0 !important;
+    right: auto !important;
+    max-width: calc(100vw - 28px) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .yapster-feed-hero {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 74% !important;
+  }
+
+  .yapster-message-composer-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    min-height: 38px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}

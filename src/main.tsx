@@ -4,6 +4,11 @@ import App from "./App.tsx";
 import "./index.css";
 import "./theme.css";
 import "./phase2-polish.css";
+import "./phase4-polish.css";
+import "./phase4-final-overrides.css";
+import "./mobile.css";
+import "./professional-polish.css";
+import "./chat-interactions.ts";
 
 import { BrowserRouter as Router } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

@@ -9,20 +9,40 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { CommunityRulesPage } from "./pages/CommunityRulesPage";
 import { CommunitySettingsPage } from "./pages/CommunitySettingsPage";
 import { CommunityModerationPage } from "./pages/CommunityModerationPage";
+import { CommunityMembersAdminPage } from "./pages/CommunityMembersAdminPage";
+import { ManageCommunityPage } from "./pages/ManageCommunityPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { SavedPostsPage } from "./pages/SavedPostsPage";
 import { ReportsPage } from "./pages/ReportsPage";
+import { MessagesPage } from "./pages/MessagesPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { isLoading } = useAuth();
+
+  /* Supabase restores the persisted session asynchronously. Do not render the logged-out
+     product for that short window: doing so makes mobile briefly show the guest layout and
+     then jump to the authenticated layout once getSession() resolves. */
+  if (isLoading) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6" style={{ background: "var(--y-bg)", color: "var(--y-text-soft)" }} aria-busy="true" aria-label="Loading Yapster">
+        <div className="flex flex-col items-center gap-3">
+          <img src="/yapster-mark.svg" alt="" className="h-10 w-10" />
+          <span className="text-sm font-medium">Loading Yapster…</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen pt-[68px] max-[760px]:pt-[60px]">
+    <div className="yapster-app min-h-screen pt-[68px] max-[760px]:pt-[60px]">
       <Navbar />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -34,6 +54,8 @@ function App() {
         <Route path="/create" element={<CreatePostPage />} />
         <Route path="/saved" element={<SavedPostsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/messages" element={<MessagesPage />} />
+        <Route path="/messages/:conversationId" element={<MessagesPage />} />
         <Route path="/post/:id" element={<PostPage />} />
         <Route path="/community/create" element={<CreateCommunityPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
@@ -42,6 +64,8 @@ function App() {
         <Route path="/community/:id/rules" element={<CommunityRulesPage />} />
         <Route path="/community/:id/settings" element={<CommunitySettingsPage />} />
         <Route path="/community/:id/moderation" element={<CommunityModerationPage />} />
+        <Route path="/community/:id/members/manage" element={<CommunityMembersAdminPage />} />
+        <Route path="/community/:id/manage" element={<ManageCommunityPage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Home />} />

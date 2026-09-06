@@ -1,0 +1,305 @@
+/* Targeted mobile/tablet safeguards only.
+   Desktop intentionally inherits the established Yapster layout unchanged. */
+
+/* Reaction pickers must never open into the scroll-container edge. This is structural chat
+   behavior, so it applies on desktop and mobile: received-message actions sit to the right of
+   their bubble and expand left; own-message actions sit to the left and expand right. */
+.yapster-message-hover-actions {
+  flex: 0 0 auto;
+  z-index: 30;
+}
+
+.yapster-message-row .yapster-message-hover-actions > div[class*="bottom-full"] {
+  top: calc(100% + 6px) !important;
+  bottom: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.yapster-message-row.justify-start .yapster-message-hover-actions > div[class*="bottom-full"] {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.yapster-message-row.justify-end .yapster-message-hover-actions > div[class*="bottom-full"] {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.yapster-messages-scroll > div.space-y-3 {
+  padding-top: 8px;
+  padding-bottom: 52px;
+}
+
+@media (max-width: 1023px) {
+  .yapster-home-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .yapster-home-primary,
+  .yapster-home-sidebar {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .yapster-home-sidebar {
+    margin-top: 1.5rem;
+  }
+
+  .yapster-messages-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 0 !important;
+  }
+
+  .yapster-messages-thread,
+  .yapster-messages-inbox,
+  .yapster-messages-scroll {
+    min-width: 0;
+  }
+
+  .yapster-messages-scroll {
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .yapster-app {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .yapster-mobile-nav {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  /* Home gets an explicit phone layout. The authenticated hero has longer copy than the guest
+     hero, so relying on intrinsic grid/flex widths allowed the signed-in state to escape the
+     viewport even though the guest state happened to fit. */
+  .yapster-home-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .yapster-home-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .yapster-home-grid {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .yapster-home-primary,
+  .yapster-home-sidebar,
+  .yapster-feed-hero,
+  .yapster-feed-hero__top,
+  .yapster-feed-hero__copy,
+  .yapster-feed-hero__tabs {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .yapster-feed-hero__top {
+    display: block !important;
+  }
+
+  .yapster-feed-hero__copy h1 {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: clamp(1.35rem, 5.7vw, 1.55rem) !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .yapster-feed-hero__copy p {
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .yapster-feed-hero__tabs > div:first-child {
+    max-width: 100% !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .yapster-feed-hero__tabs > div:first-child::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile chat is a true single-pane inbox/thread view. */
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell > .yapster-messages-page-header {
+    display: none !important;
+  }
+
+  .yapster-messages-page.is-thread-open {
+    padding-top: 6px !important;
+  }
+
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-messages-layout {
+    width: 100%;
+    border-radius: 16px !important;
+  }
+
+  .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(100dvh - 154px);
+    min-height: 320px !important;
+  }
+
+  .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100%;
+  }
+
+  .yapster-messages-scroll {
+    padding: 14px 12px 52px !important;
+  }
+
+  .yapster-message-row {
+    gap: 4px !important;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 78% !important;
+  }
+
+  .yapster-message-composer-shell {
+    position: relative;
+    z-index: 24;
+    padding: 10px !important;
+  }
+
+  .yapster-message-composer-shell > div:last-child {
+    min-width: 0 !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .yapster-message-composer {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    flex: 0 0 auto;
+  }
+
+  .yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"] {
+    left: 0 !important;
+    right: auto !important;
+    width: min(18rem, calc(100vw - 28px)) !important;
+    max-width: calc(100vw - 28px) !important;
+  }
+
+  /* Touch devices must not depend on hover to discover message controls. */
+  .yapster-message-row .yapster-message-hover-actions,
+  .yapster-inbox-row .yapster-inbox-hover-actions {
+    opacity: .72 !important;
+    transform: none !important;
+  }
+
+  .yapster-message-row .yapster-message-hover-actions:focus-within,
+  .yapster-inbox-row .yapster-inbox-hover-actions:focus-within {
+    opacity: 1 !important;
+  }
+
+  /* visualViewport is maintained by chat-interactions.ts. */
+  html.yapster-keyboard-open body {
+    padding-bottom: 0 !important;
+  }
+
+  html.yapster-keyboard-open .yapster-mobile-nav {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 16px) !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(var(--yapster-visual-height, 100dvh) - 68px) !important;
+    min-height: 240px !important;
+    max-height: none !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100% !important;
+  }
+
+  html.yapster-keyboard-open .yapster-messages-scroll {
+    min-height: 0 !important;
+    padding-top: 12px !important;
+    padding-bottom: 10px !important;
+  }
+
+  html.yapster-keyboard-open .yapster-message-composer-shell {
+    flex: 0 0 auto;
+    padding: 9px !important;
+    padding-bottom: max(9px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Dark loading skeletons remain visible on phones. */
+  html[data-theme="dark"] [aria-label="Loading discussions"] .bg-slate-100 {
+    background: #292936 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 76% !important;
+  }
+
+  .yapster-message-composer-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    min-height: 38px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}

@@ -1,0 +1,649 @@
+/* Responsive system for Yapster. Loaded last so mobile/tablet safeguards win over utility classes. */
+
+html,
+body,
+#root {
+  max-width: 100%;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+img,
+video,
+svg,
+canvas {
+  max-width: 100%;
+}
+
+textarea,
+input,
+select,
+button {
+  min-width: 0;
+}
+
+main {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+main h1,
+main h2,
+main h3,
+main p,
+main a,
+main button,
+main dd,
+main dt {
+  overflow-wrap: anywhere;
+}
+
+/* Keep overlays within the usable viewport instead of letting desktop widths leak onto small screens. */
+[role="dialog"] > * {
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.yapster-account-menu,
+.yapster-popover-menu {
+  max-width: calc(100vw - 24px);
+}
+
+.yapster-profile-social-actions,
+.yapster-profile-social-actions__buttons {
+  min-width: 0;
+}
+
+/* Tablet: use fluid one-column application layouts where the desktop side-by-side view no longer has room. */
+@media (max-width: 1023px) {
+  .yapster-app main > div.mx-auto {
+    width: 100%;
+  }
+
+  .yapster-messages-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: 0 !important;
+  }
+
+  .yapster-messages-thread,
+  .yapster-messages-inbox {
+    min-width: 0;
+  }
+
+  .yapster-messages-thread {
+    min-height: 560px;
+  }
+
+  .yapster-messages-scroll {
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+
+  .yapster-community-page [class*="lg:grid-cols-"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .yapster-community-page [class*="lg:sticky"] {
+    position: static !important;
+    top: auto !important;
+  }
+
+  main form [class*="lg:grid-cols-["] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Phone layout follows Yapster's 760px mobile-navigation breakpoint, not Tailwind's 640px sm breakpoint. */
+@media (max-width: 760px) {
+  body {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .yapster-mobile-nav {
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .yapster-app main {
+    padding-top: 14px !important;
+  }
+
+  .yapster-app main > div.mx-auto {
+    width: 100%;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .yapster-card,
+  .yapster-post-card,
+  .yapster-feed-hero,
+  main article[class*="rounded-[22px]"],
+  main section[class*="rounded-[22px]"],
+  main section[class*="rounded-[24px]"],
+  main section[class*="rounded-[30px]"] {
+    border-radius: 16px !important;
+  }
+
+  /* Tailwind sm: spacing otherwise becomes desktop-like again between 640px and Yapster's 760px mobile breakpoint. */
+  main [class*="sm:p-8"],
+  main [class*="sm:p-7"] {
+    padding: 20px !important;
+  }
+
+  main [class*="sm:p-6"] {
+    padding: 18px !important;
+  }
+
+  main [class*="sm:px-8"],
+  main [class*="sm:px-7"] {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  main [class*="sm:py-8"],
+  main [class*="sm:py-7"] {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+  }
+
+  /* Headings always shrink from desktop sizes. Responsive class names in the attribute must not accidentally make phone type larger. */
+  main h1[class*="text-5xl"],
+  main h1[class*="text-4xl"],
+  main h1[class*="text-[2.15rem]"],
+  main h1[class*="text-3xl"] {
+    font-size: 1.5rem !important;
+    line-height: 1.18 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  main h2[class*="text-3xl"],
+  main h2[class*="text-2xl"] {
+    font-size: 1.25rem !important;
+    line-height: 1.22 !important;
+  }
+
+  main h2[class*="text-xl"],
+  main h3[class*="text-xl"] {
+    font-size: 1.08rem !important;
+  }
+
+  main p[class*="text-[0.98rem]"],
+  main p[class*="text-base"] {
+    font-size: .9rem !important;
+    line-height: 1.65 !important;
+  }
+
+  /* sm: layout utilities otherwise switch at 640px and create an awkward 640–760px half-desktop state. */
+  main [class*="flex-col"][class*="sm:flex-row"] {
+    flex-direction: column !important;
+  }
+
+  main [class*="sm:grid-cols-4"],
+  main [class*="sm:grid-cols-3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  main [class*="sm:items-end"][class*="flex-col"] {
+    align-items: stretch !important;
+  }
+
+  main header[class*="flex"][class*="justify-between"] {
+    flex-wrap: wrap;
+    align-items: flex-start !important;
+  }
+
+  .yapster-button,
+  .h4up-button {
+    min-height: 39px;
+    padding-left: 13px;
+    padding-right: 13px;
+    font-size: .82rem;
+  }
+
+  .yapster-post-action {
+    min-height: 33px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: .76rem;
+  }
+
+  .yapster-auth-shell {
+    min-height: calc(100dvh - 142px);
+    padding: 20px 12px 28px !important;
+  }
+
+  .yapster-auth-card {
+    border-radius: 16px !important;
+  }
+
+  .yapster-auth-card__body {
+    padding: 22px 18px !important;
+  }
+
+  /* Horizontal controls scroll rather than squeezing labels into broken pills. */
+  [aria-label="Sort discussions"],
+  [aria-label*="tabs" i],
+  [role="tablist"],
+  main nav[class*="overflow-x-auto"] {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [aria-label="Sort discussions"]::-webkit-scrollbar,
+  [role="tablist"]::-webkit-scrollbar,
+  main nav[class*="overflow-x-auto"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Feed/home. */
+  .yapster-feed-hero {
+    padding: 18px !important;
+  }
+
+  .yapster-feed-hero::after {
+    width: 240px;
+    height: 240px;
+    right: -110px;
+    top: -100px;
+  }
+
+  .yapster-feed-hero h1 {
+    font-size: 1.42rem !important;
+  }
+
+  .yapster-feed-hero > div:first-child {
+    gap: 12px !important;
+  }
+
+  /* Post cards/details: preserve every action without making a card wider than the screen. */
+  .yapster-post-card > div:first-child {
+    padding: 15px !important;
+  }
+
+  .yapster-post-card h2 {
+    font-size: 1.08rem !important;
+  }
+
+  .yapster-post-card img[class*="max-h-[480px]"] {
+    max-height: 62dvh !important;
+  }
+
+  main article > div[class*="p-5"][class*="sm:p-8"] {
+    padding: 17px !important;
+  }
+
+  main article h1[class*="mt-6"] {
+    margin-top: 20px !important;
+  }
+
+  main article a[href^="http"][class*="flex"] {
+    align-items: flex-start !important;
+  }
+
+  /* Create Post post types stay a compact 2×2 selector instead of becoming four tall stacked cards. */
+  .yapster-create-post-page form > div:first-child > div.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Profile actions: three equal compact controls fit cleanly on a phone. */
+  .yapster-profile-social-actions {
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .yapster-profile-social-actions > div:first-child {
+    width: 100%;
+  }
+
+  .yapster-profile-social-actions__buttons {
+    display: grid !important;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px !important;
+  }
+
+  .yapster-profile-social-actions__buttons .yapster-button {
+    width: 100%;
+    min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    white-space: nowrap;
+    font-size: .76rem;
+  }
+
+  /* Community pages. */
+  .yapster-community-page section > div[class*="px-5"] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .yapster-community-page [class*="h-20"][class*="w-20"] {
+    width: 72px !important;
+    height: 72px !important;
+    border-radius: 18px !important;
+  }
+
+  .yapster-community-page [class*="lg:max-w-[390px]"] {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .yapster-community-page [class*="lg:max-w-[390px]"] > button,
+  .yapster-community-page [class*="lg:max-w-[390px]"] > a {
+    flex: 1 1 auto;
+  }
+
+  /* Forms: image, rule, flair, moderation and profile editors stay readable as single-column forms. */
+  main form [class*="md:grid-cols-2"],
+  main form [class*="md:grid-cols-["],
+  main form [class*="lg:grid-cols-["] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  main form input,
+  main form textarea,
+  main form select {
+    max-width: 100%;
+  }
+
+  main form [class*="justify-end"] {
+    max-width: 100%;
+  }
+
+  /* Messaging is a single-pane app on phone/tablet: inbox OR thread, never a squeezed split view. */
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell > .yapster-messages-page-header {
+    display: none !important;
+  }
+
+  .yapster-messages-page.is-thread-open {
+    padding-top: 6px !important;
+  }
+
+  .yapster-messages-page.is-thread-open > .yapster-messages-shell {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .yapster-messages-layout {
+    width: 100%;
+    border-radius: 16px !important;
+  }
+
+  .yapster-messages-page.is-thread-open .yapster-messages-layout {
+    height: calc(100dvh - 154px);
+    min-height: 320px !important;
+  }
+
+  .yapster-messages-thread {
+    min-height: 0 !important;
+    height: 100%;
+  }
+
+  .yapster-messages-scroll {
+    padding: 14px 12px !important;
+  }
+
+  .yapster-message-row {
+    gap: 4px !important;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 78% !important;
+  }
+
+  .yapster-message-hover-actions {
+    gap: 0 !important;
+  }
+
+  .yapster-message-hover-actions > button {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .yapster-message-composer-shell {
+    padding: 10px !important;
+  }
+
+  .yapster-message-composer-shell > div:last-child {
+    gap: 6px !important;
+  }
+
+  .yapster-message-composer-shell button[aria-label="Add emoji"] {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px;
+  }
+
+  .yapster-message-composer {
+    min-height: 40px !important;
+    padding: 10px 11px !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    min-height: 40px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"] {
+    width: min(18rem, calc(100vw - 32px)) !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    padding: 10px !important;
+  }
+
+  .yapster-chat-blocked-banner {
+    align-items: flex-start !important;
+    padding: 10px 12px !important;
+  }
+
+  .yapster-chat-blocked-banner > div:first-child {
+    flex: 1 1 220px;
+  }
+
+  /* Notification dropdown becomes viewport-relative instead of extending off the navbar. */
+  .yapster-navbar__actions div[class*="w-[360px]"] {
+    position: fixed !important;
+    top: 58px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-top: 0 !important;
+    max-height: calc(100dvh - 148px);
+  }
+
+  /* Dialogs become bottom-safe cards rather than oversized desktop modals. */
+  [role="dialog"] {
+    padding: 12px !important;
+  }
+
+  [role="dialog"] > * {
+    width: 100% !important;
+    border-radius: 16px !important;
+  }
+
+  [role="dialog"] [class*="justify-end"][class*="gap-2"] {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 520px) {
+  .yapster-app main > div.mx-auto {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .yapster-navbar__inner {
+    width: calc(100% - 18px);
+    gap: 7px;
+  }
+
+  .yapster-brand__mark {
+    width: 29px;
+    height: 29px;
+  }
+
+  .yapster-brand__word {
+    font-size: 1.02rem;
+  }
+
+  .yapster-navbar__actions {
+    gap: 5px;
+  }
+
+  .yapster-theme-toggle,
+  .yapster-navbar__actions > a[aria-label="Messages"],
+  .yapster-navbar__actions button[aria-label="Notifications"],
+  .yapster-profile-trigger {
+    width: 33px !important;
+    height: 33px !important;
+    min-width: 33px !important;
+  }
+
+  .yapster-account-menu {
+    right: 0;
+    width: min(220px, calc(100vw - 24px));
+  }
+
+  .yapster-card.p-10,
+  .yapster-card.p-9,
+  .yapster-card.p-8,
+  .yapster-card[class*="sm:p-12"] {
+    padding: 20px !important;
+  }
+
+  /* Four-way selectors such as post type and profile score tiles remain useful as a 2×2 grid. */
+  main [class*="sm:grid-cols-4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Two/three-card management and form groups stack cleanly on narrow phones. */
+  main [class*="sm:grid-cols-3"],
+  main [class*="sm:grid-cols-2"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .yapster-create-post-page form > div:first-child > div.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .yapster-profile-social-actions__buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .yapster-profile-social-actions__buttons .yapster-button {
+    font-size: .72rem;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .yapster-profile-social-actions__buttons svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Profile hero gets proportionally smaller instead of consuming most of the first phone viewport. */
+  main:has(.yapster-profile-social-actions) div[class*="h-40"][class*="bg-[#0e0e15]"] {
+    height: 7.5rem !important;
+  }
+
+  main:has(.yapster-profile-social-actions) img[class*="h-24"][class*="w-24"],
+  main:has(.yapster-profile-social-actions) div[class*="h-24"][class*="w-24"] {
+    width: 5rem !important;
+    height: 5rem !important;
+  }
+
+  main:has(.yapster-profile-social-actions) div[class*="-mt-14"] {
+    margin-top: -2.75rem !important;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 76% !important;
+  }
+
+  .yapster-message-row p[class*="text-sm"] {
+    font-size: .82rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .yapster-message-composer-shell button[type="submit"] {
+    font-size: .75rem !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .yapster-chat-blocked-banner .yapster-button {
+    width: 100%;
+  }
+
+  main header[class*="flex"] > span[class*="rounded-full"] {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .yapster-navbar__inner {
+    width: calc(100% - 14px);
+    gap: 5px;
+  }
+
+  .yapster-brand {
+    gap: 6px;
+  }
+
+  .yapster-brand__word {
+    font-size: .95rem;
+  }
+
+  .yapster-brand__mark {
+    width: 27px;
+    height: 27px;
+  }
+
+  .yapster-navbar__actions {
+    gap: 4px;
+  }
+
+  .yapster-theme-toggle,
+  .yapster-navbar__actions > a[aria-label="Messages"],
+  .yapster-navbar__actions button[aria-label="Notifications"],
+  .yapster-profile-trigger {
+    width: 31px !important;
+    height: 31px !important;
+    min-width: 31px !important;
+  }
+
+  .yapster-profile-social-actions__buttons {
+    gap: 5px !important;
+  }
+
+  .yapster-profile-social-actions__buttons .yapster-button {
+    font-size: .68rem;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 74% !important;
+  }
+}
+
+/* Touch devices cannot depend on hover to discover chat controls. */
+@media (pointer: coarse) and (max-width: 1023px) {
+  .yapster-message-row .yapster-message-hover-actions,
+  .yapster-inbox-row .yapster-inbox-hover-actions {
+    opacity: .72 !important;
+    transform: none !important;
+  }
+
+  .yapster-message-row .yapster-message-hover-actions:focus-within,
+  .yapster-inbox-row .yapster-inbox-hover-actions:focus-within {
+    opacity: 1 !important;
+  }
+}

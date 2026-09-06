@@ -5,6 +5,7 @@ import { PostItem } from "./PostItem";
 
 export type FeedSort = "hot" | "new" | "top";
 export type TopRange = "day" | "week" | "month" | "year" | "all";
+export type FeedMode = "for_you" | "following" | "discover";
 
 export interface Post {
   id: number;
@@ -29,7 +30,7 @@ export interface Post {
 }
 
 interface Props {
-  mode?: "for_you" | "discover";
+  mode?: FeedMode;
   userId?: string | null;
   sort?: FeedSort;
   topRange?: TopRange;
@@ -112,6 +113,12 @@ const fetchOwnedCommunityIds = async (userId: string): Promise<Set<number>> => {
   return new Set((data ?? []).map((row) => Number(row.id)).filter(Number.isFinite));
 };
 
+const fetchFollowedUserIds = async (userId: string): Promise<Set<string>> => {
+  const { data, error } = await supabase.from("user_follows").select("following_id").eq("follower_id", userId);
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((row) => String(row.following_id)).filter(Boolean));
+};
+
 const filterTopRange = (posts: Post[], range: TopRange) => {
   if (range === "all") return posts;
   const milliseconds = range === "day" ? 86_400_000 : range === "week" ? 604_800_000 : range === "month" ? 2_592_000_000 : 31_536_000_000;
@@ -121,9 +128,7 @@ const filterTopRange = (posts: Post[], range: TopRange) => {
 
 const sortPosts = (posts: Post[], sort: FeedSort, topRange: TopRange) => {
   const copy = sort === "top" ? filterTopRange([...posts], topRange) : [...posts];
-  if (sort === "new") {
-    return copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }
+  if (sort === "new") return copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   if (sort === "top") {
     return copy.sort((a, b) => (b.like_count ?? 0) - (a.like_count ?? 0) || (b.comment_count ?? 0) - (a.comment_count ?? 0) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
@@ -138,22 +143,26 @@ const sortPosts = (posts: Post[], sort: FeedSort, topRange: TopRange) => {
 };
 
 const EmptyIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
-    <path d="M5 6.5h14M5 11.5h10M5 16.5h7" strokeLinecap="round" />
-  </svg>
+  <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M5 6.5h14M5 11.5h10M5 16.5h7" strokeLinecap="round" /></svg>
 );
 
 export const PostList = ({ mode = "discover", userId, sort = "hot", topRange = "all" }: Props) => {
   const { data, error, isLoading } = useQuery<Post[], Error>({ queryKey: ["posts"], queryFn: fetchPosts });
   const { data: joinedIds = new Set<number>() } = useQuery<Set<number>, Error>({
     queryKey: ["community-joined-ids", userId],
-    queryFn: () => (userId ? fetchJoinedCommunityIds(userId) : Promise.resolve(new Set<number>())),
+    queryFn: () => userId ? fetchJoinedCommunityIds(userId) : Promise.resolve(new Set<number>()),
     enabled: !!userId,
     retry: false,
   });
   const { data: ownedIds = new Set<number>() } = useQuery<Set<number>, Error>({
     queryKey: ["community-owned-ids", userId],
-    queryFn: () => (userId ? fetchOwnedCommunityIds(userId) : Promise.resolve(new Set<number>())),
+    queryFn: () => userId ? fetchOwnedCommunityIds(userId) : Promise.resolve(new Set<number>()),
+    enabled: !!userId,
+    retry: false,
+  });
+  const { data: followedUserIds = new Set<string>() } = useQuery<Set<string>, Error>({
+    queryKey: ["followed-user-ids", userId],
+    queryFn: () => userId ? fetchFollowedUserIds(userId) : Promise.resolve(new Set<string>()),
     enabled: !!userId,
     retry: false,
   });
@@ -161,10 +170,17 @@ export const PostList = ({ mode = "discover", userId, sort = "hot", topRange = "
   const accessibleCommunityIds = new Set<number>([...joinedIds, ...ownedIds]);
   const filteredPosts = sortPosts((data ?? []).filter((post) => {
     const communityId = post.community_id != null ? Number(post.community_id) : null;
+
+    if (mode === "following") {
+      if (!userId || !post.user_id) return false;
+      return followedUserIds.has(post.user_id);
+    }
+
     if (mode === "for_you") {
       if (!userId || communityId == null) return false;
       return accessibleCommunityIds.has(communityId);
     }
+
     if (communityId == null || !userId) return true;
     return !accessibleCommunityIds.has(communityId);
   }), sort, topRange);
@@ -185,13 +201,24 @@ export const PostList = ({ mode = "discover", userId, sort = "hot", topRange = "
   if (error) return <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm font-medium text-red-700 shadow-sm">Unable to load discussions right now. Please try again.</div>;
 
   if (!filteredPosts.length) {
-    const forYou = mode === "for_you";
+    const isCommunityFeed = mode === "for_you";
+    const isFollowingFeed = mode === "following";
+    const title = isFollowingFeed ? "Your following feed is quiet" : isCommunityFeed ? "Your feed is quiet" : sort === "top" ? "No top posts in this range" : "Nothing to discover yet";
+    const description = isFollowingFeed
+      ? "Follow a few Yapsters and their posts will show up here."
+      : isCommunityFeed
+        ? "Join a few communities and their discussions will show up here."
+        : sort === "top"
+          ? "Try a wider time range to see more highly rated discussions."
+          : "New discussions will appear here as people start posting around Yapster.";
+
     return (
       <div className="yapster-card p-9 text-center">
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-50 text-violet-700"><EmptyIcon /></div>
-        <h3 className="mt-4 text-xl font-extrabold text-slate-950">{forYou ? "Your feed is quiet" : sort === "top" ? "No top posts in this range" : "Nothing to discover yet"}</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{forYou ? "Join a few communities and their discussions will show up here." : sort === "top" ? "Try a wider time range to see more highly rated discussions." : "New discussions will appear here as people start posting around Yapster."}</p>
-        {forYou && <Link to="/communities" className="yapster-button yapster-button--primary mt-5">Browse communities</Link>}
+        <h3 className="mt-4 text-xl font-extrabold text-slate-950">{title}</h3>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{description}</p>
+        {isCommunityFeed && <Link to="/communities" className="yapster-button yapster-button--primary mt-5">Browse communities</Link>}
+        {isFollowingFeed && <Link to="/search" className="yapster-button yapster-button--primary mt-5">Find people</Link>}
       </div>
     );
   }
