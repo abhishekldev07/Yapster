@@ -41,7 +41,7 @@ main dt {
   overflow-wrap: anywhere;
 }
 
-/* Keep popovers and dialogs inside the viewport on every screen size. */
+/* Keep overlays within the usable viewport instead of letting desktop widths leak onto small screens. */
 [role="dialog"] > * {
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
@@ -53,16 +53,12 @@ main dt {
   max-width: calc(100vw - 24px);
 }
 
-/* Profile social actions are intentionally compact and predictable. */
-.yapster-profile-social-actions {
-  min-width: 0;
-}
-
+.yapster-profile-social-actions,
 .yapster-profile-social-actions__buttons {
   min-width: 0;
 }
 
-/* Tablet: keep content fluid and avoid desktop-only fixed-height assumptions. */
+/* Tablet: use fluid one-column application layouts where the desktop side-by-side view no longer has room. */
 @media (max-width: 1023px) {
   .yapster-app main > div.mx-auto {
     width: 100%;
@@ -93,10 +89,16 @@ main dt {
 
   .yapster-community-page [class*="lg:sticky"] {
     position: static !important;
+    top: auto !important;
+  }
+
+  /* Tool pages should never inherit a desktop-width control row on a tablet. */
+  main form [class*="lg:grid-cols-["] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
-/* Phone layout follows Yapster's 760px mobile-navigation breakpoint rather than Tailwind's 640px sm breakpoint. */
+/* Phone layout follows Yapster's 760px mobile-navigation breakpoint, not Tailwind's 640px sm breakpoint. */
 @media (max-width: 760px) {
   body {
     padding-bottom: calc(82px + env(safe-area-inset-bottom));
@@ -107,6 +109,7 @@ main dt {
   }
 
   .yapster-app main > div.mx-auto {
+    width: 100%;
     padding-left: 14px !important;
     padding-right: 14px !important;
   }
@@ -121,7 +124,7 @@ main dt {
     border-radius: 16px !important;
   }
 
-  /* Typography scales down on small screens instead of letting desktop headings dominate. */
+  /* Desktop typography must get smaller, never larger, as the viewport narrows. */
   main h1[class*="text-5xl"],
   main h1[class*="text-4xl"],
   main h1[class*="text-[2.15rem]"],
@@ -148,21 +151,23 @@ main dt {
     line-height: 1.65 !important;
   }
 
-  /* sm: row/grid utilities otherwise switch too early between 640px and 760px. */
+  /* sm: layout utilities otherwise switch at 640px and create an awkward 640–760px half-desktop state. */
   main [class*="flex-col"][class*="sm:flex-row"] {
     flex-direction: column !important;
   }
 
-  main [class*="sm:grid-cols-4"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
+  main [class*="sm:grid-cols-4"],
   main [class*="sm:grid-cols-3"] {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   main [class*="sm:items-end"][class*="flex-col"] {
     align-items: stretch !important;
+  }
+
+  main header[class*="flex"][class*="justify-between"] {
+    flex-wrap: wrap;
+    align-items: flex-start !important;
   }
 
   .yapster-button,
@@ -180,7 +185,7 @@ main dt {
     font-size: .76rem;
   }
 
-  /* Horizontal controls scroll instead of squeezing or wrapping into awkward multi-line pills. */
+  /* Horizontal controls scroll rather than squeezing labels into broken pills. */
   [aria-label="Sort discussions"],
   [aria-label*="tabs" i],
   [role="tablist"],
@@ -218,7 +223,7 @@ main dt {
     gap: 12px !important;
   }
 
-  /* Post cards/details: preserve all actions without making the card wider than the viewport. */
+  /* Post cards/details: preserve every action without making a card wider than the screen. */
   .yapster-post-card > div:first-child {
     padding: 15px !important;
   }
@@ -237,6 +242,10 @@ main dt {
 
   main article h1[class*="mt-6"] {
     margin-top: 20px !important;
+  }
+
+  main article a[href^="http"][class*="flex"] {
+    align-items: flex-start !important;
   }
 
   /* Profile actions: three equal compact controls fit cleanly on a phone. */
@@ -287,7 +296,7 @@ main dt {
     flex: 1 1 auto;
   }
 
-  /* Forms: keep media/rule/flair rows readable instead of forcing narrow columns. */
+  /* Forms: image, rule, flair, moderation and profile editors stay readable as single-column forms. */
   main form [class*="md:grid-cols-2"],
   main form [class*="md:grid-cols-["],
   main form [class*="lg:grid-cols-["] {
@@ -300,7 +309,11 @@ main dt {
     max-width: 100%;
   }
 
-  /* Messaging uses a single-pane app layout on mobile/tablet. */
+  main form [class*="justify-end"] {
+    max-width: 100%;
+  }
+
+  /* Messaging is a single-pane app on phone/tablet: inbox OR thread, never a squeezed split view. */
   .yapster-messages-page.is-thread-open > .yapster-messages-shell > .yapster-messages-page-header {
     display: none !important;
   }
@@ -391,7 +404,7 @@ main dt {
     flex: 1 1 220px;
   }
 
-  /* Notification dropdown fits a phone and leaves safe viewport margins. */
+  /* Notification dropdown becomes viewport-relative instead of extending off the navbar. */
   .yapster-navbar__actions div[class*="w-[360px]"] {
     position: fixed !important;
     top: 58px !important;
@@ -420,17 +433,36 @@ main dt {
     padding-right: 12px !important;
   }
 
-  .yapster-brand__word {
-    font-size: 1.08rem;
-  }
-
   .yapster-navbar__inner {
     width: calc(100% - 18px);
     gap: 7px;
   }
 
+  .yapster-brand__mark {
+    width: 29px;
+    height: 29px;
+  }
+
+  .yapster-brand__word {
+    font-size: 1.02rem;
+  }
+
   .yapster-navbar__actions {
-    gap: 6px;
+    gap: 5px;
+  }
+
+  .yapster-theme-toggle,
+  .yapster-navbar__actions > a[aria-label="Messages"],
+  .yapster-navbar__actions button[aria-label="Notifications"],
+  .yapster-profile-trigger {
+    width: 33px !important;
+    height: 33px !important;
+    min-width: 33px !important;
+  }
+
+  .yapster-account-menu {
+    right: 0;
+    width: min(220px, calc(100vw - 24px));
   }
 
   .yapster-card.p-10,
@@ -440,15 +472,15 @@ main dt {
     padding: 20px !important;
   }
 
-  main [class*="sm:grid-cols-4"],
+  /* Four-way selectors such as post type and profile score tiles remain useful as a 2×2 grid. */
+  main [class*="sm:grid-cols-4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Two/three-card management and form groups stack cleanly on narrow phones. */
   main [class*="sm:grid-cols-3"],
   main [class*="sm:grid-cols-2"] {
     grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  /* Keep compact score/stat tiles as two columns when they are simple cards. */
-  main [class*="grid-cols-2"]:not(form *) {
-    min-width: 0;
   }
 
   .yapster-profile-social-actions__buttons {
@@ -464,6 +496,21 @@ main dt {
   .yapster-profile-social-actions__buttons svg {
     width: 14px;
     height: 14px;
+  }
+
+  /* Profile hero gets proportionally smaller instead of consuming most of the first phone viewport. */
+  main:has(.yapster-profile-social-actions) div[class*="h-40"][class*="bg-[#0e0e15]"] {
+    height: 7.5rem !important;
+  }
+
+  main:has(.yapster-profile-social-actions) img[class*="h-24"][class*="w-24"],
+  main:has(.yapster-profile-social-actions) div[class*="h-24"][class*="w-24"] {
+    width: 5rem !important;
+    height: 5rem !important;
+  }
+
+  main:has(.yapster-profile-social-actions) div[class*="-mt-14"] {
+    margin-top: -2.75rem !important;
   }
 
   .yapster-message-row > div[class*="max-w-"] {
@@ -483,6 +530,57 @@ main dt {
 
   .yapster-chat-blocked-banner .yapster-button {
     width: 100%;
+  }
+
+  main header[class*="flex"] > span[class*="rounded-full"] {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .yapster-navbar__inner {
+    width: calc(100% - 14px);
+    gap: 5px;
+  }
+
+  .yapster-brand {
+    gap: 6px;
+  }
+
+  .yapster-brand__word {
+    font-size: .95rem;
+  }
+
+  .yapster-brand__mark {
+    width: 27px;
+    height: 27px;
+  }
+
+  .yapster-navbar__actions {
+    gap: 4px;
+  }
+
+  .yapster-theme-toggle,
+  .yapster-navbar__actions > a[aria-label="Messages"],
+  .yapster-navbar__actions button[aria-label="Notifications"],
+  .yapster-profile-trigger {
+    width: 31px !important;
+    height: 31px !important;
+    min-width: 31px !important;
+  }
+
+  .yapster-profile-social-actions__buttons {
+    gap: 5px !important;
+  }
+
+  .yapster-profile-social-actions__buttons .yapster-button {
+    font-size: .68rem;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .yapster-message-row > div[class*="max-w-"] {
+    max-width: 74% !important;
   }
 }
 
