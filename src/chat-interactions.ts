@@ -43,12 +43,15 @@ document.addEventListener("focusin", (event) => {
 });
 
 /* Clicking the emoji button or an emoji must not steal focus from the composer.
-   Preventing the compatibility mousedown keeps Android/iOS keyboards open while preserving the button click. */
-document.addEventListener("mousedown", (event) => {
+   Preventing pointer/mouse focus keeps software keyboards open while preserving the button click. */
+const preserveComposerFocus = (event: Event) => {
   if (!(event.target instanceof Element) || !isComposerEmojiControl(event.target)) return;
   const composer = getComposerFromElement(event.target);
   if (composer && document.activeElement === composer) event.preventDefault();
-}, true);
+};
+
+document.addEventListener("pointerdown", preserveComposerFocus, true);
+document.addEventListener("mousedown", preserveComposerFocus, true);
 
 document.addEventListener("click", (event) => {
   if (!(event.target instanceof Element) || !isComposerEmojiControl(event.target)) return;
