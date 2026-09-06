@@ -6,8 +6,7 @@ import "./theme.css";
 import "./phase2-polish.css";
 import "./phase4-polish.css";
 import "./phase4-final-overrides.css";
-import "./responsive.css";
-import "./responsive-final-fixes.css";
+import "./mobile.css";
 import "./chat-interactions.ts";
 
 import { BrowserRouter as Router } from "react-router";
