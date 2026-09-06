@@ -22,8 +22,25 @@ import { LoginPage } from "./pages/LoginPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SignupPage } from "./pages/SignupPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { isLoading } = useAuth();
+
+  /* Supabase restores the persisted session asynchronously. Do not render the logged-out
+     product for that short window: doing so makes mobile briefly show the guest layout and
+     then jump to the authenticated layout once getSession() resolves. */
+  if (isLoading) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6" style={{ background: "var(--y-bg)", color: "var(--y-text-soft)" }} aria-busy="true" aria-label="Loading Yapster">
+        <div className="flex flex-col items-center gap-3">
+          <img src="/yapster-mark.svg" alt="" className="h-10 w-10" />
+          <span className="text-sm font-medium">Loading Yapster…</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="yapster-app min-h-screen pt-[68px] max-[760px]:pt-[60px]">
       <Navbar />
