@@ -27,7 +27,7 @@
 
 <div align="center">
   <a href="https://yapster-social.vercel.app/">
-    <img src="./docs/assets/home-preview.svg" alt="Yapster home page preview" width="100%" />
+    <img src="./docs/assets/home-preview.png" alt="Yapster home page preview" width="100%" />
   </a>
   <sub>Current desktop home experience · <a href="https://yapster-social.vercel.app/">Open the live application</a></sub>
 </div>
