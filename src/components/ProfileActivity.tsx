@@ -108,7 +108,7 @@ export const ProfileActivity = ({ profileId }: Props) => {
                     {post?.community_name && <><span>·</span><span>{post.community_name}</span></>}
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{comment.content}</p>
-                  <Link to={`/post/${comment.post_id}`} className="mt-3 inline-flex text-xs font-extrabold text-violet-700 hover:text-violet-800">{post?.title ? `View: ${post.title}` : "View discussion"} →</Link>
+                  <Link to={`/post/${comment.post_id}?comment=${comment.id}`} className="mt-3 inline-flex text-xs font-extrabold text-violet-700 hover:text-violet-800">{post?.title ? `View: ${post.title}` : "View discussion"} →</Link>
                 </article>
               );
             })}
