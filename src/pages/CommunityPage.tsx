@@ -51,17 +51,6 @@ export const CommunityPage = () => {
   });
   const canManage = isOwner || Boolean(access?.canManage);
 
-  const { data: openReportCount = 0 } = useQuery<number, Error>({
-    queryKey: ["community-open-report-count", communityId],
-    queryFn: async () => {
-      const { count, error } = await supabase.from("reports").select("id", { count: "exact", head: true }).eq("community_id", communityId).in("status", ["open", "reviewing"]);
-      if (error) throw new Error(error.message);
-      return count ?? 0;
-    },
-    enabled: canManage,
-    retry: false,
-  });
-
   useEffect(() => {
     const root = communityDisplayRef.current;
     if (!root) return;
@@ -102,7 +91,7 @@ export const CommunityPage = () => {
   }, [presentation?.banner_url, presentation?.icon_url]);
 
   const interceptManage = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isOwner) return;
+    if (!canManage) return;
     const button = (event.target as HTMLElement).closest("button");
     if (!button || button.textContent?.trim() !== "Manage") return;
     event.preventDefault();
@@ -115,11 +104,6 @@ export const CommunityPage = () => {
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
         <div className="mb-3 flex flex-wrap justify-end gap-2">
           <Link to={`/community/${communityId}/rules`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-orange-200 hover:text-orange-700">Community rules <span aria-hidden="true">→</span></Link>
-          {canManage && !isOwner && <>
-            <Link to={`/community/${communityId}/moderation`} className="inline-flex items-center gap-2 rounded-xl bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100">Moderation{openReportCount > 0 ? ` · ${openReportCount}` : ""} <span aria-hidden="true">→</span></Link>
-            <Link to={`/community/${communityId}/members/manage`} className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-200">Manage members <span aria-hidden="true">→</span></Link>
-            <Link to={`/community/${communityId}/settings`} className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-200">Rules & flairs <span aria-hidden="true">→</span></Link>
-          </>}
         </div>
         <div ref={communityDisplayRef} onClickCapture={interceptManage}><CommunityDisplay communityId={communityId} /></div>
       </div>

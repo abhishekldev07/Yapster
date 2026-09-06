@@ -692,7 +692,7 @@ export const CommunityDisplay = ({ communityId }: Props) => {
                   </button>
                 )}
 
-                {isOwner && (
+                {(isOwner || isModerator) && (
                   <button
                     type="button"
                     onClick={openManageCommunity}
