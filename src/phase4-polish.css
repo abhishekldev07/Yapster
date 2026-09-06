@@ -13,6 +13,9 @@
   font-weight: 600 !important;
 }
 
+/* If a component explicitly asks to be centered, never let inherited layout rules pull its copy left. */
+.text-center { text-align: center !important; }
+
 /* Member moderation controls do not need bright white outlines. */
 .yapster-community-page [class*="bg-slate-50/70"] button[class*="border-"] {
   border-color: transparent !important;
@@ -49,10 +52,10 @@
 /* Reusable discreet menus used in chat. */
 .yapster-popover-menu {
   min-width: 180px;
-  border: 1px solid var(--y-border);
+  border: 0 !important;
   background: var(--y-surface);
   color: var(--y-text);
-  box-shadow: 0 16px 40px rgba(10, 10, 18, .18);
+  box-shadow: 0 8px 20px rgba(10, 10, 18, .12) !important;
 }
 .yapster-popover-menu button {
   width: 100%;
@@ -67,6 +70,14 @@
 }
 .yapster-popover-menu button:hover { background: var(--y-surface-muted); }
 
+/* Own-message menu reads Edit, Copy, Delete. */
+.yapster-message-row.justify-end .yapster-popover-menu {
+  display: flex;
+  flex-direction: column;
+}
+.yapster-message-row.justify-end .yapster-popover-menu > button:nth-child(2) { order: 3; }
+.yapster-message-row.justify-end .yapster-popover-menu > button:nth-child(3) { order: 2; }
+
 /* Inbox menus live in the row flow so the sidebar scroller never clips the dropdown. */
 .yapster-inbox-row > .yapster-popover-menu {
   position: relative !important;
@@ -75,6 +86,19 @@
   width: calc(100% - 1rem);
   min-width: 0;
   margin: -.2rem .5rem .55rem;
+  box-shadow: 0 6px 16px rgba(10, 10, 18, .08) !important;
+}
+
+/* Selected inbox rows use contrast, not a white outline. */
+.yapster-inbox-row[class*="bg-slate-100"] {
+  background: #ececf1 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+}
+.yapster-inbox-row[class*="bg-slate-100"] > button:first-child {
+  box-shadow: none !important;
+  outline: 0 !important;
 }
 
 /* Keep message action chrome visible on keyboard focus as well as hover. */
@@ -94,6 +118,21 @@
   transform: translateY(0) !important;
 }
 
+/* Reactions visually attach to the message bubble instead of floating below it. */
+.yapster-message-row > div[class*="max-w-"] > div.mt-1.flex.flex-wrap {
+  margin-top: -.18rem !important;
+  position: relative;
+  z-index: 2;
+}
+
+/* Composer focus is subtle; no thick white/violet halo. */
+textarea[placeholder^="Message"]:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: var(--y-border-strong) !important;
+  background: var(--y-surface) !important;
+}
+
 /* Deep chat chrome in dark mode: no pale grey circles or washed-out emoji panels. */
 html[data-theme="dark"] .yapster-message-hover-actions > button,
 html[data-theme="dark"] .yapster-inbox-hover-actions,
@@ -111,8 +150,8 @@ html[data-theme="dark"] button[aria-label="Add emoji"]:hover {
 html[data-theme="dark"] .yapster-message-hover-actions > div[class*="bg-white"],
 html[data-theme="dark"] [data-chat-popover] > div[class*="bg-white"] {
   background: #14141d !important;
-  border-color: #2b2b38 !important;
-  box-shadow: 0 18px 44px rgba(0,0,0,.48) !important;
+  border-color: transparent !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28) !important;
 }
 html[data-theme="dark"] .yapster-message-hover-actions > div button:hover,
 html[data-theme="dark"] [data-chat-popover] > div button:hover {
@@ -122,11 +161,21 @@ html[data-theme="dark"] .yapster-inbox-row {
   background: transparent !important;
 }
 html[data-theme="dark"] .yapster-inbox-row[class*="bg-slate-100"] {
-  background: #171720 !important;
+  background: #22222d !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
 }
 html[data-theme="dark"] .yapster-inbox-row:hover,
 html[data-theme="dark"] .yapster-inbox-row:focus-within {
-  background: #1b1b25 !important;
+  background: #1d1d27 !important;
+}
+html[data-theme="dark"] .yapster-inbox-row[class*="bg-slate-100"]:hover,
+html[data-theme="dark"] .yapster-inbox-row[class*="bg-slate-100"]:focus-within {
+  background: #252531 !important;
+}
+html[data-theme="dark"] .yapster-inbox-row > .yapster-popover-menu {
+  background: #15151e !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,.22) !important;
 }
 
 /* Native profile file upload should match the polished community upload controls. */
@@ -173,7 +222,13 @@ input[type="file"]:not(.yapster-file-input)::file-selector-button:hover {
   margin-bottom: .9rem !important;
 }
 
+/* Community appearance now lives only in Manage community, not Rules & Flairs. */
+main > div.mx-auto.max-w-5xl > section.yapster-card.mb-6 {
+  display: none !important;
+}
+
 /* Standardized, breathable back-to-community action across community tool pages. */
+.yapster-back-community,
 main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child,
 main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child,
 main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child,
@@ -192,6 +247,7 @@ main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/comm
   text-decoration: none !important;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease !important;
 }
+.yapster-back-community:hover,
 main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child:hover,
 main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child:hover,
 main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child:hover,
@@ -200,11 +256,44 @@ main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/comm
   border-color: var(--y-border-strong) !important;
   color: var(--y-text) !important;
 }
+.yapster-back-community,
+main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child,
+main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/community/"]:first-child {
+  margin-bottom: 1.45rem !important;
+}
+main > div[class*="max-w-"] > header > a[href^="/community/"]:first-child + p,
+main > div[class*="max-w-"] > header > div:first-child > a[href^="/community/"]:first-child + p,
+main > div[class*="max-w-"] > div:first-child > a[href^="/community/"]:first-child + div,
+main > div[class*="max-w-"] > div:first-child > div:first-child > a[href^="/community/"]:first-child + p {
+  margin-top: 0 !important;
+}
+
+/* Comment deep-links: no text badge, just a soft temporary focus wash that fades away. */
+[id^="comment-"] > div > p:first-child {
+  display: none !important;
+}
+[id^="comment-"] > div.ring-4 {
+  animation: yapster-comment-focus 2200ms ease-out forwards;
+}
+[id^="comment-"].border-violet-400 {
+  animation: yapster-comment-rail 2200ms ease-out forwards;
+}
+@keyframes yapster-comment-focus {
+  0% { background-color: rgba(139, 92, 246, .16); border-color: rgba(139, 92, 246, .72); box-shadow: 0 0 0 4px rgba(139, 92, 246, .16); }
+  45% { background-color: rgba(139, 92, 246, .09); border-color: rgba(139, 92, 246, .42); box-shadow: 0 0 0 3px rgba(139, 92, 246, .08); }
+  100% { background-color: var(--y-surface); border-color: var(--y-border); box-shadow: none; }
+}
+@keyframes yapster-comment-rail {
+  from { border-color: rgba(139, 92, 246, .72); }
+  to { border-color: var(--y-border); }
+}
 
 html[data-theme="dark"] .yapster-popover-menu {
   background: #14141d !important;
-  border-color: #2b2b38 !important;
-  box-shadow: 0 18px 44px rgba(0,0,0,.48);
+  border-color: transparent !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28) !important;
 }
 html[data-theme="dark"] input[type="file"]:not(.yapster-file-input)::file-selector-button,
 html[data-theme="dark"] .yapster-upload-button {
