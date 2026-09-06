@@ -82,14 +82,19 @@ export const ReportDialog = ({ open, communityId, targetType, targetId, onClose 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[230] flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm"
+      className="fixed inset-0 z-[230] flex items-start justify-center overflow-hidden bg-black/70 px-3 py-3 backdrop-blur-sm sm:items-center sm:px-4 sm:py-8"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !mutation.isPending) onClose();
       }}
     >
-      <section role="dialog" aria-modal="true" aria-labelledby="report-dialog-title" className="w-full max-w-lg overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(0,0,0,0.45)]">
-        <div className="h-1 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
-        <div className="p-5 sm:p-6">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-dialog-title"
+        className="flex max-h-[calc(100dvh-24px)] w-full max-w-lg flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] sm:max-h-[calc(100dvh-64px)] sm:rounded-[24px]"
+      >
+        <div className="h-1 shrink-0 bg-gradient-to-r from-orange-500 via-pink-500 to-violet-600" />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
           {mutation.isSuccess ? (
             <div className="py-3 text-center">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
@@ -120,7 +125,7 @@ export const ReportDialog = ({ open, communityId, targetType, targetId, onClose 
                         key={item.value}
                         type="button"
                         onClick={() => setReason(item.value)}
-                        className={`flex items-start gap-3 rounded-2xl border p-3.5 text-left transition ${reason === item.value ? "border-violet-300 bg-violet-50 ring-2 ring-violet-100" : "border-slate-200 bg-white hover:border-slate-300"}`}
+                        className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition sm:p-3.5 ${reason === item.value ? "border-violet-300 bg-violet-50 ring-2 ring-violet-100" : "border-slate-200 bg-white hover:border-slate-300"}`}
                         aria-pressed={reason === item.value}
                       >
                         <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${reason === item.value ? "border-violet-600 bg-violet-600" : "border-slate-300"}`}>
@@ -133,7 +138,7 @@ export const ReportDialog = ({ open, communityId, targetType, targetId, onClose 
 
                   <label className="mt-5 block text-sm font-extrabold text-slate-700">
                     Extra context <span className="font-medium text-slate-400">(optional)</span>
-                    <textarea value={details} onChange={(event) => setDetails(event.target.value)} maxLength={1200} rows={4} placeholder="Add anything that would help moderators understand the issue..." className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm leading-6 text-slate-800 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60" />
+                    <textarea value={details} onChange={(event) => setDetails(event.target.value)} maxLength={1200} rows={3} placeholder="Add anything that would help moderators understand the issue..." className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm leading-6 text-slate-800 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/60 sm:min-h-28" />
                     <span className="mt-1 block text-right text-[11px] font-medium text-slate-400">{details.length}/1200</span>
                   </label>
                 </>
@@ -141,7 +146,10 @@ export const ReportDialog = ({ open, communityId, targetType, targetId, onClose 
 
               {errorMessage && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm font-semibold text-red-700">{errorMessage}</div>}
 
-              <div className="mt-6 flex flex-col-reverse gap-2.5 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+              <div
+                className="sticky bottom-0 z-10 -mx-4 mt-5 flex flex-col-reverse gap-2.5 border-t border-slate-100 bg-white/95 px-4 pt-4 backdrop-blur sm:-mx-6 sm:flex-row sm:justify-end sm:px-6"
+                style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+              >
                 <button type="button" onClick={onClose} disabled={mutation.isPending} className="yapster-button yapster-button--ghost sm:min-w-24 disabled:opacity-50">Cancel</button>
                 <button type="button" onClick={() => mutation.mutate()} disabled={!user || mutation.isPending} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-32">{mutation.isPending ? "Submitting..." : "Submit report"}</button>
               </div>
