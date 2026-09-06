@@ -100,7 +100,11 @@ main dt {
 /* Phone layout follows Yapster's 760px mobile-navigation breakpoint, not Tailwind's 640px sm breakpoint. */
 @media (max-width: 760px) {
   body {
-    padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+
+  .yapster-mobile-nav {
+    bottom: max(10px, env(safe-area-inset-bottom));
   }
 
   .yapster-app main {
@@ -373,7 +377,7 @@ main dt {
 
   .yapster-messages-page.is-thread-open .yapster-messages-layout {
     height: calc(100dvh - 154px);
-    min-height: 410px !important;
+    min-height: 320px !important;
   }
 
   .yapster-messages-thread {
@@ -462,6 +466,10 @@ main dt {
   [role="dialog"] > * {
     width: 100% !important;
     border-radius: 16px !important;
+  }
+
+  [role="dialog"] [class*="justify-end"][class*="gap-2"] {
+    flex-wrap: wrap;
   }
 }
 
