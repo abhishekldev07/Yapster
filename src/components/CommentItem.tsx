@@ -93,7 +93,6 @@ export const CommentItem = ({ comment, postId, communityId, targetCommentId }: P
     <>
       <div id={`comment-${comment.id}`} className={`relative scroll-mt-28 border-l pl-3 transition sm:pl-4 ${isTarget ? "border-violet-400" : "border-slate-200"}`}>
         <div className={`rounded-[15px] border bg-white p-3.5 shadow-[0_1px_2px_rgba(15,15,25,0.025)] transition sm:p-4 ${isTarget ? "border-violet-400 ring-4 ring-violet-100/70" : "border-slate-200"}`}>
-          {isTarget && <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.14em] text-violet-600">Opened from notification</p>}
           <div className="flex items-start gap-3">
             <Link to={`/profile/${encodeURIComponent(comment.author)}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-[11px] font-black text-violet-800 ring-1 ring-black/5" aria-label={`Open ${comment.author}'s profile`}>
               {comment.author.slice(0, 1).toUpperCase()}
