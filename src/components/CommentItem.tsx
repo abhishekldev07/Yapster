@@ -16,6 +16,12 @@ interface Props {
   targetCommentId?: number | null;
 }
 
+interface CommentAuthorProfile {
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 const createReply = async (content: string, postId: number, parentCommentId: number, userId?: string, author?: string) => {
   if (!userId || !author) throw new Error("You must be logged in to reply.");
   const { error } = await supabase.from("comments").insert({ post_id: postId, content, parent_comment_id: parentCommentId, user_id: userId, author });
@@ -39,6 +45,25 @@ export const CommentItem = ({ comment, postId, communityId, targetCommentId }: P
   const queryClient = useQueryClient();
   const isOwnComment = Boolean(user && user.id === comment.user_id);
   const isTarget = targetCommentId === comment.id;
+
+  const { data: authorProfile = null } = useQuery<CommentAuthorProfile | null, Error>({
+    queryKey: ["comment-author-profile", comment.user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, display_name, avatar_url")
+        .eq("id", comment.user_id)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data as CommentAuthorProfile | null;
+    },
+    enabled: Boolean(comment.user_id),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const profileUsername = authorProfile?.username?.trim() || comment.author;
+  const displayName = authorProfile?.display_name?.trim() || authorProfile?.username?.trim() || comment.author;
+  const profileHref = `/profile/${encodeURIComponent(profileUsername)}`;
 
   const { data: postCommunityId = null } = useQuery<number | null, Error>({
     queryKey: ["comment-post-community", postId],
@@ -94,12 +119,16 @@ export const CommentItem = ({ comment, postId, communityId, targetCommentId }: P
       <div id={`comment-${comment.id}`} className={`relative scroll-mt-28 border-l pl-3 transition sm:pl-4 ${isTarget ? "border-violet-400" : "border-slate-200"}`}>
         <div className={`rounded-[15px] border bg-white p-3.5 shadow-[0_1px_2px_rgba(15,15,25,0.025)] transition sm:p-4 ${isTarget ? "border-violet-400 ring-4 ring-violet-100/70" : "border-slate-200"}`}>
           <div className="flex items-start gap-3">
-            <Link to={`/profile/${encodeURIComponent(comment.author)}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-[11px] font-black text-violet-800 ring-1 ring-black/5" aria-label={`Open ${comment.author}'s profile`}>
-              {comment.author.slice(0, 1).toUpperCase()}
+            <Link to={profileHref} className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-gradient-to-br from-orange-100 via-pink-100 to-violet-100 text-[11px] font-black text-violet-800 ring-1 ring-black/5" aria-label={`Open ${displayName}'s profile`}>
+              {authorProfile?.avatar_url ? (
+                <img src={authorProfile.avatar_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                displayName.slice(0, 1).toUpperCase()
+              )}
             </Link>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Link to={`/profile/${encodeURIComponent(comment.author)}`} className="text-sm font-extrabold text-slate-900 transition hover:text-violet-700">{comment.author}</Link>
+                <Link to={profileHref} className="text-sm font-extrabold text-slate-900 transition hover:text-violet-700">{displayName}</Link>
                 <span className="text-[11px] font-medium text-slate-400">{formattedDate}</span>
                 {isOwnComment && <span className="text-[10px] font-extrabold uppercase tracking-wide text-violet-500">You</span>}
               </div>
@@ -122,7 +151,7 @@ export const CommentItem = ({ comment, postId, communityId, targetCommentId }: P
           </div>
         </div>
 
-        {showReply && user && !isEditing && <form onSubmit={(event) => { event.preventDefault(); if (replyText.trim()) replyMutation.mutate(replyText.trim()); }} className="mb-3 ml-3 mt-2 rounded-xl border border-violet-100 bg-violet-50/35 p-3 sm:ml-5"><textarea value={replyText} onChange={(event) => setReplyText(event.target.value)} className="min-h-20 w-full resize-y rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-normal leading-6 text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100/60" placeholder={`Reply to ${comment.author}...`} rows={2} /><div className="mt-2 flex items-center justify-between gap-2"><span className="text-[10px] font-medium text-slate-400">Use @username to mention someone.</span><div className="flex gap-2"><button type="button" onClick={() => { setShowReply(false); setReplyText(""); }} className="rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-500">Cancel</button><button type="submit" disabled={replyMutation.isPending || !replyText.trim()} className="yapster-button yapster-button--primary min-h-8 px-3 py-0 text-xs disabled:opacity-45">{replyMutation.isPending ? "Posting..." : "Post reply"}</button></div></div></form>}
+        {showReply && user && !isEditing && <form onSubmit={(event) => { event.preventDefault(); if (replyText.trim()) replyMutation.mutate(replyText.trim()); }} className="mb-3 ml-3 mt-2 rounded-xl border border-violet-100 bg-violet-50/35 p-3 sm:ml-5"><textarea value={replyText} onChange={(event) => setReplyText(event.target.value)} className="min-h-20 w-full resize-y rounded-lg border border-slate-200 bg-white p-2.5 text-sm font-normal leading-6 text-slate-800 outline-none focus:border-violet-300 focus:ring-4 focus:ring-violet-100/60" placeholder={`Reply to ${displayName}...`} rows={2} /><div className="mt-2 flex items-center justify-between gap-2"><span className="text-[10px] font-medium text-slate-400">Use @username to mention someone.</span><div className="flex gap-2"><button type="button" onClick={() => { setShowReply(false); setReplyText(""); }} className="rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-500">Cancel</button><button type="submit" disabled={replyMutation.isPending || !replyText.trim()} className="yapster-button yapster-button--primary min-h-8 px-3 py-0 text-xs disabled:opacity-45">{replyMutation.isPending ? "Posting..." : "Post reply"}</button></div></div></form>}
 
         {comment.children && comment.children.length > 0 && !isCollapsed && <div className="mt-3 space-y-3">{comment.children.map((child) => <CommentItem key={child.id} comment={child} postId={postId} communityId={resolvedCommunityId} targetCommentId={targetCommentId} />)}</div>}
       </div>
