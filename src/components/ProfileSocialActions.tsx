@@ -114,14 +114,14 @@ export const ProfileSocialActions = ({ profileId, profileUsername, isOwnProfile 
   const actionError = followMutation.error || messageMutation.error || blockMutation.error || blockQuery.error;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="yapster-profile-social-actions flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-4 text-xs">
         <span className="text-slate-500"><strong className="mr-1 text-sm font-black text-slate-900">{followers.toLocaleString()}</strong>{followers === 1 ? "follower" : "followers"}</span>
         <span className="text-slate-500"><strong className="mr-1 text-sm font-black text-slate-900">{following.toLocaleString()}</strong>following</span>
       </div>
 
       {!isOwnProfile && (
-        <div className="flex flex-wrap gap-2">
+        <div className="yapster-profile-social-actions__buttons flex flex-wrap gap-2">
           <button
             type="button"
             disabled={followMutation.isPending || interactionBlocked}
@@ -153,7 +153,9 @@ export const ProfileSocialActions = ({ profileId, profileUsername, isOwnProfile 
               if (!user) return navigate("/login");
               blockMutation.mutate();
             }}
-            className={`yapster-button yapster-button--ghost inline-flex items-center gap-2 ${blockedByMe ? "text-violet-700" : "text-red-600"}`}
+            className={blockedByMe
+              ? "yapster-button inline-flex items-center gap-2 border-violet-200 bg-violet-50/70 text-violet-700 hover:border-violet-300 hover:bg-violet-100"
+              : "yapster-button yapster-profile-block-button inline-flex items-center gap-2 border-red-200 bg-red-50/70 text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700"}
           >
             <BlockIcon />
             {blockMutation.isPending ? "Updating..." : blockedByMe ? "Unblock" : "Block"}
