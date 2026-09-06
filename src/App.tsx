@@ -10,6 +10,7 @@ import { CommunityRulesPage } from "./pages/CommunityRulesPage";
 import { CommunitySettingsPage } from "./pages/CommunitySettingsPage";
 import { CommunityModerationPage } from "./pages/CommunityModerationPage";
 import { CommunityMembersAdminPage } from "./pages/CommunityMembersAdminPage";
+import { ManageCommunityPage } from "./pages/ManageCommunityPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SearchPage } from "./pages/SearchPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -47,6 +48,7 @@ function App() {
         <Route path="/community/:id/settings" element={<CommunitySettingsPage />} />
         <Route path="/community/:id/moderation" element={<CommunityModerationPage />} />
         <Route path="/community/:id/members/manage" element={<CommunityMembersAdminPage />} />
+        <Route path="/community/:id/manage" element={<ManageCommunityPage />} />
         <Route path="/community/:id" element={<CommunityPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="*" element={<Home />} />
