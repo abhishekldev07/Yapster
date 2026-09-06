@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
@@ -58,6 +58,13 @@ export const ManageCommunityPage = () => {
   const community = communityQuery.data;
   const isOwner = Boolean(user && community?.created_by === user.id);
 
+  useEffect(() => {
+    if (!community || !isOwner || editorReady) return;
+    setName(community.name);
+    setDescription(community.description ?? "");
+    setEditorReady(true);
+  }, [community, editorReady, isOwner]);
+
   const reportsQuery = useQuery<number, Error>({
     queryKey: ["community-open-report-count", communityId],
     queryFn: async () => {
@@ -68,12 +75,6 @@ export const ManageCommunityPage = () => {
     enabled: isOwner,
     retry: false,
   });
-
-  if (community && isOwner && !editorReady) {
-    setName(community.name);
-    setDescription(community.description ?? "");
-    setEditorReady(true);
-  }
 
   const saveMutation = useMutation({
     mutationFn: async () => {
