@@ -101,7 +101,7 @@ export const CommunityMembersAdminPage = () => {
   return (
     <main className="pb-16 pt-7 max-[760px]:pb-24 max-[760px]:pt-4">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
-        <header className="mb-6"><Link to={`/community/${communityId}`} className="inline-flex rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-200">← Back to {community.name}</Link><p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.13em] text-slate-400">Member management</p><h1 className="mt-1 text-3xl font-bold tracking-[-0.04em] text-slate-950">Remove community members</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Removal requires a reason. The member receives that reason, and the action is recorded in the moderation log.</p></header>
+        <header className="mb-6"><Link to={`/community/${communityId}/manage`} className="yapster-back-community">← Back to Manage community</Link><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-slate-400">Member management</p><h1 className="mt-1 text-3xl font-bold tracking-[-0.04em] text-slate-950">Remove community members</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Removal requires a reason. The member receives that reason, and the action is recorded in the moderation log.</p></header>
 
         <section className="yapster-card p-5 sm:p-6">
           <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search members" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-normal text-slate-800 outline-none focus:border-violet-300 focus:bg-white" />
