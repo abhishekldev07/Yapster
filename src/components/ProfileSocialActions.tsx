@@ -15,6 +15,13 @@ interface BlockState {
   blockedMe: boolean;
 }
 
+const BlockIcon = () => (
+  <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+    <circle cx="10" cy="10" r="6.5" />
+    <path d="m5.5 5.5 9 9" strokeLinecap="round" />
+  </svg>
+);
+
 const fetchBlockState = async (currentUserId: string, profileId: string): Promise<BlockState> => {
   const { data, error } = await supabase
     .from("user_blocks")
@@ -90,6 +97,7 @@ export const ProfileSocialActions = ({ profileId, profileUsername, isOwnProfile 
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile-block-state", user?.id, profileId] }),
+        queryClient.invalidateQueries({ queryKey: ["message-block-state", user?.id, profileId] }),
         queryClient.invalidateQueries({ queryKey: ["profile-is-following", user?.id, profileId] }),
         queryClient.invalidateQueries({ queryKey: ["profile-follow-stats"] }),
         queryClient.invalidateQueries({ queryKey: ["followed-user-ids", user?.id] }),
@@ -145,8 +153,9 @@ export const ProfileSocialActions = ({ profileId, profileUsername, isOwnProfile 
               if (!user) return navigate("/login");
               blockMutation.mutate();
             }}
-            className={`yapster-button yapster-button--ghost ${blockedByMe ? "text-violet-700" : "text-red-600"}`}
+            className={`yapster-button yapster-button--ghost inline-flex items-center gap-2 ${blockedByMe ? "text-violet-700" : "text-red-600"}`}
           >
+            <BlockIcon />
             {blockMutation.isPending ? "Updating..." : blockedByMe ? "Unblock" : "Block"}
           </button>
         </div>
