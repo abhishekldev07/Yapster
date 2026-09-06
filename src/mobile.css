@@ -1,7 +1,51 @@
 /* Targeted mobile/tablet safeguards only.
    Desktop intentionally inherits the established Yapster layout unchanged. */
 
+/* Reaction pickers must never open into the scroll-container edge. This is structural chat
+   behavior, so it applies on desktop and mobile: received-message actions sit to the right of
+   their bubble and expand left; own-message actions sit to the left and expand right. */
+.yapster-message-hover-actions {
+  flex: 0 0 auto;
+  z-index: 30;
+}
+
+.yapster-message-row .yapster-message-hover-actions > div[class*="bottom-full"] {
+  top: calc(100% + 6px) !important;
+  bottom: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.yapster-message-row.justify-start .yapster-message-hover-actions > div[class*="bottom-full"] {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.yapster-message-row.justify-end .yapster-message-hover-actions > div[class*="bottom-full"] {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.yapster-messages-scroll > div.space-y-3 {
+  padding-top: 8px;
+  padding-bottom: 52px;
+}
+
 @media (max-width: 1023px) {
+  .yapster-home-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .yapster-home-primary,
+  .yapster-home-sidebar {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .yapster-home-sidebar {
+    margin-top: 1.5rem;
+  }
+
   .yapster-messages-layout {
     grid-template-columns: minmax(0, 1fr) !important;
     min-height: 0 !important;
@@ -36,25 +80,71 @@
     bottom: max(10px, env(safe-area-inset-bottom));
   }
 
-  /* Keep the existing Home proportions; only prevent intrinsic flex widths from escaping the phone. */
-  .yapster-feed-hero,
-  .yapster-feed-hero > div:first-child,
-  .yapster-feed-hero > div:first-child > div:first-child,
-  .yapster-feed-hero [class*="max-w-[580px]"] {
-    min-width: 0 !important;
-    max-width: 100% !important;
+  /* Home gets an explicit phone layout. The authenticated hero has longer copy than the guest
+     hero, so relying on intrinsic grid/flex widths allowed the signed-in state to escape the
+     viewport even though the guest state happened to fit. */
+  .yapster-home-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
-  .yapster-feed-hero > div:first-child {
+  .yapster-home-shell {
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 
-  .yapster-feed-hero h1,
-  .yapster-feed-hero p {
+  .yapster-home-grid {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .yapster-home-primary,
+  .yapster-home-sidebar,
+  .yapster-feed-hero,
+  .yapster-feed-hero__top,
+  .yapster-feed-hero__copy,
+  .yapster-feed-hero__tabs {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .yapster-feed-hero__top {
+    display: block !important;
+  }
+
+  .yapster-feed-hero__copy h1 {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: clamp(1.35rem, 5.7vw, 1.55rem) !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .yapster-feed-hero__copy p {
+    width: 100% !important;
     max-width: 100% !important;
     white-space: normal !important;
     word-break: normal !important;
     overflow-wrap: break-word !important;
+  }
+
+  .yapster-feed-hero__tabs > div:first-child {
+    max-width: 100% !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .yapster-feed-hero__tabs > div:first-child::-webkit-scrollbar {
+    display: none;
   }
 
   /* Mobile chat is a true single-pane inbox/thread view. */
@@ -87,7 +177,7 @@
   }
 
   .yapster-messages-scroll {
-    padding: 14px 12px !important;
+    padding: 14px 12px 52px !important;
   }
 
   .yapster-message-row {
@@ -96,33 +186,6 @@
 
   .yapster-message-row > div[class*="max-w-"] {
     max-width: 78% !important;
-  }
-
-  .yapster-message-hover-actions {
-    flex: 0 0 auto;
-    z-index: 30;
-  }
-
-  /* A received-message reaction strip expands left from the action buttons;
-     an own-message strip expands right. This keeps both inside the viewport. */
-  .yapster-message-row.justify-start .yapster-message-hover-actions > div[class*="bottom-full"] {
-    left: auto !important;
-    right: 0 !important;
-    top: calc(100% + 6px) !important;
-    bottom: auto !important;
-    margin: 0 !important;
-  }
-
-  .yapster-message-row.justify-end .yapster-message-hover-actions > div[class*="bottom-full"] {
-    left: 0 !important;
-    right: auto !important;
-    top: calc(100% + 6px) !important;
-    bottom: auto !important;
-    margin: 0 !important;
-  }
-
-  .yapster-messages-scroll > div.space-y-3 {
-    padding-bottom: 46px;
   }
 
   .yapster-message-composer-shell {
