@@ -124,6 +124,28 @@ main dt {
     border-radius: 16px !important;
   }
 
+  /* Tailwind sm: spacing otherwise becomes desktop-like again between 640px and Yapster's 760px mobile breakpoint. */
+  main [class*="sm:p-8"],
+  main [class*="sm:p-7"] {
+    padding: 20px !important;
+  }
+
+  main [class*="sm:p-6"] {
+    padding: 18px !important;
+  }
+
+  main [class*="sm:px-8"],
+  main [class*="sm:px-7"] {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  main [class*="sm:py-8"],
+  main [class*="sm:py-7"] {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+  }
+
   /* Desktop typography must get smaller, never larger, as the viewport narrows. */
   main h1[class*="text-5xl"],
   main h1[class*="text-4xl"],
@@ -183,6 +205,20 @@ main dt {
     padding-left: 10px;
     padding-right: 10px;
     font-size: .76rem;
+  }
+
+  /* Auth cards need less vertical chrome because the phone already has top and bottom navigation. */
+  .yapster-auth-shell {
+    min-height: calc(100dvh - 142px);
+    padding: 20px 12px 28px !important;
+  }
+
+  .yapster-auth-card {
+    border-radius: 16px !important;
+  }
+
+  .yapster-auth-card__body {
+    padding: 22px 18px !important;
   }
 
   /* Horizontal controls scroll rather than squeezing labels into broken pills. */
@@ -335,7 +371,6 @@ main dt {
   .yapster-messages-page.is-thread-open .yapster-messages-layout {
     height: calc(100dvh - 154px);
     min-height: 410px !important;
-    max-height: 760px;
   }
 
   .yapster-messages-thread {
