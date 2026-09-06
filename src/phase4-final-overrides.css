@@ -1,0 +1,90 @@
+/* Final Phase 4 review overrides. Loaded last so the review fixes win cleanly. */
+
+/* The own-message menu is already rendered in the intended Edit / Copy / Delete order. */
+.yapster-message-row.justify-end .yapster-popover-menu > button:nth-child(2),
+.yapster-message-row.justify-end .yapster-popover-menu > button:nth-child(3) {
+  order: initial !important;
+}
+
+/* Selected inbox chats use surface contrast only — never a bright outline. */
+.yapster-inbox-row.is-selected {
+  background: #e7e7ed !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+}
+.yapster-inbox-row.is-selected > button:first-child {
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+html[data-theme="dark"] .yapster-inbox-row.is-selected {
+  background: #24242f !important;
+}
+html[data-theme="dark"] .yapster-inbox-row.is-selected:hover,
+html[data-theme="dark"] .yapster-inbox-row.is-selected:focus-within {
+  background: #292936 !important;
+}
+
+/* Message composer focus is intentionally quiet. */
+.yapster-message-composer:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: var(--y-border-strong) !important;
+}
+
+/* Blocked chat notice stays dark and neutral in dark mode. */
+html[data-theme="dark"] .yapster-chat-blocked-banner {
+  background: #171720 !important;
+  border-color: #2a2a36 !important;
+  color: #c8c8d2 !important;
+}
+
+/* Targeted comments need a visible but calm dark-theme focus wash. */
+html[data-theme="dark"] [id^="comment-"] > div.ring-4 {
+  animation: yapster-comment-focus-dark 2400ms ease-out forwards !important;
+}
+html[data-theme="dark"] [id^="comment-"].border-violet-400 {
+  animation: yapster-comment-rail-dark 2400ms ease-out forwards !important;
+}
+@keyframes yapster-comment-focus-dark {
+  0% {
+    background-color: rgba(124, 58, 237, .30);
+    border-color: rgba(196, 181, 253, .90);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, .22);
+  }
+  45% {
+    background-color: rgba(124, 58, 237, .16);
+    border-color: rgba(167, 139, 250, .55);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, .12);
+  }
+  100% {
+    background-color: var(--y-surface);
+    border-color: var(--y-border);
+    box-shadow: none;
+  }
+}
+@keyframes yapster-comment-rail-dark {
+  from { border-color: rgba(196, 181, 253, .88); }
+  to { border-color: var(--y-border); }
+}
+
+/* Centered empty states should be visibly centered as a whole, not only text-aligned. */
+.yapster-card.text-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.text-center > h1,
+.text-center > h2,
+.text-center > h3,
+.text-center > p {
+  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+}
+.text-center > a,
+.text-center > button {
+  margin-left: auto;
+  margin-right: auto;
+}
