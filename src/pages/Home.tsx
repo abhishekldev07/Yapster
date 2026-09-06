@@ -77,20 +77,20 @@ export const Home = () => {
   const sectionTitle = feedMode === "for_you" ? "From your communities" : feedMode === "following" ? "From people you follow" : "Worth discovering";
 
   return (
-    <main className="pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
-      <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
-        <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,760px)_300px] xl:gap-9">
-          <section className="min-w-0">
+    <main className="yapster-home-page pb-16 pt-7 max-[760px]:pb-8 max-[760px]:pt-4">
+      <div className="yapster-home-shell mx-auto w-full max-w-[1240px] px-4 sm:px-6">
+        <div className="yapster-home-grid grid items-start gap-7 lg:grid-cols-[minmax(0,760px)_300px] xl:gap-9">
+          <section className="yapster-home-primary min-w-0">
             <div className="yapster-feed-hero p-5 sm:p-6">
-              <div className="relative z-10 flex items-start justify-between gap-6">
-                <div className="max-w-[580px]">
+              <div className="yapster-feed-hero__top relative z-10 flex items-start justify-between gap-6">
+                <div className="yapster-feed-hero__copy max-w-[580px]">
                   <h1 className="max-w-xl text-2xl font-bold leading-tight tracking-[-0.04em] text-white sm:text-[2rem]">{user ? "Your communities, people, and conversations in one place." : "Find your people. Join the conversation."}</h1>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-white/60 sm:text-[0.95rem]">{user ? "Catch up on communities you joined, people you follow, or jump outside your bubble and discover something new." : "Interest-driven communities where questions, opinions, recommendations, and ideas have room to breathe."}</p>
                 </div>
                 <div className="hidden shrink-0 sm:block"><Link to={user ? "/create" : "/signup"} className="yapster-hero-cta inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:-translate-y-0.5">{user ? "Create post" : "Join Yapster"}<ArrowIcon /></Link></div>
               </div>
 
-              <div className="relative z-10 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <div className="yapster-feed-hero__tabs relative z-10 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
                 <div className="inline-flex max-w-full overflow-x-auto rounded-xl border border-white/10 bg-white/[0.055] p-1">
                   {feedTabs.map((tab) => {
                     const isActive = feedMode === tab.key;
@@ -122,7 +122,7 @@ export const Home = () => {
             <PostList mode={feedMode} userId={user?.id ?? null} sort={feedSort} topRange={topRange} />
           </section>
 
-          <aside className="space-y-5 lg:sticky lg:top-[92px]">
+          <aside className="yapster-home-sidebar space-y-5 lg:sticky lg:top-[92px]">
             <section className="yapster-card p-4 sm:p-5">
               <div className="flex items-center justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-violet-600">Discover</p><h2 className="mt-1 text-base font-bold text-slate-950">Trending communities</h2></div><Link to="/communities" className="text-xs font-medium text-slate-500 hover:text-slate-900">See all</Link></div>
               {communitiesError ? <p className="mt-4 text-sm leading-6 text-slate-500">Communities are unavailable right now.</p> : trendingCommunities.length ? (
