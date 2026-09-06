@@ -121,11 +121,10 @@ export const ManageCommunityPage = () => {
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Moderation, members, organization, and community identity in one place.</p>
         </header>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-3">
           <Link to={`/community/${communityId}/moderation`} className="yapster-card group p-4 transition hover:border-slate-300"><h2 className="text-sm font-semibold text-slate-900">Moderation</h2><p className="mt-1 text-xs leading-5 text-slate-500">Review reports and moderation history.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-600">Open{openReports > 0 ? ` · ${openReports}` : ""} <Arrow /></span></Link>
           <Link to={`/community/${communityId}/members/manage`} className="yapster-card group p-4 transition hover:border-slate-300"><h2 className="text-sm font-semibold text-slate-900">Manage members</h2><p className="mt-1 text-xs leading-5 text-slate-500">Remove members and handle member safety.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-600">Open <Arrow /></span></Link>
           <Link to={`/community/${communityId}/settings`} className="yapster-card group p-4 transition hover:border-slate-300"><h2 className="text-sm font-semibold text-slate-900">Rules & flairs</h2><p className="mt-1 text-xs leading-5 text-slate-500">Set standards and organize posts.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-600">Open <Arrow /></span></Link>
-          <a href="#community-details" className="yapster-card group p-4 transition hover:border-slate-300"><h2 className="text-sm font-semibold text-slate-900">Edit community details</h2><p className="mt-1 text-xs leading-5 text-slate-500">Name, description, icon, and cover image.</p><span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-600">Edit <Arrow /></span></a>
         </section>
 
         <section id="community-details" className="yapster-card mt-6 scroll-mt-24 p-5 sm:p-6">
