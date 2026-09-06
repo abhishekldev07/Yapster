@@ -1,0 +1,80 @@
+/* Final visual restraint pass. Loaded last so these product-level rules stay consistent. */
+
+/* Primary CTAs keep the Yapster gradient but lose the colorful glow. */
+.yapster-button--primary,
+.h4up-button--primary {
+  box-shadow: 0 6px 18px rgba(8, 8, 14, 0.14) !important;
+}
+
+.yapster-button--primary:hover,
+.h4up-button--primary:hover {
+  box-shadow: 0 8px 22px rgba(8, 8, 14, 0.18) !important;
+}
+
+/* Profile cover ambience: branded, but intentionally subdued. */
+[class*="bg-[#0e0e15]"] > [class*="bg-orange-500/15"],
+[class*="bg-[#0e0e15]"] > [class*="bg-pink-600/15"] {
+  opacity: .5 !important;
+}
+
+[class*="bg-[#0e0e15]"] > [class*="bg-violet-600/25"] {
+  opacity: .46 !important;
+}
+
+/* Community cover ambience previously read as three saturated paint clouds. */
+[class*="bg-[#0b0914]"] > [class*="bg-orange-500/30"],
+[class*="bg-[#0b0914]"] > [class*="bg-pink-500/25"] {
+  opacity: .38 !important;
+}
+
+[class*="bg-[#0b0914]"] > [class*="bg-violet-600/35"] {
+  opacity: .42 !important;
+}
+
+/* Default community identity keeps the brand palette without the neon halo. */
+[class*="bg-[#0b0914]"] [class*="from-orange-400"][class*="via-pink-500"][class*="to-violet-600"] {
+  filter: saturate(.72) brightness(.94);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .22) !important;
+}
+
+/* Community hero gradient CTA is still recognizable, just not glowing pink. */
+[class*="bg-[#0b0914]"] button[class*="from-orange-500"][class*="via-pink-500"][class*="to-violet-600"] {
+  filter: saturate(.82);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .2) !important;
+}
+
+/* Composer owns the highest chat-local layer. Message hover chrome must never sit over its emoji panel. */
+.yapster-message-composer-shell {
+  position: relative;
+  z-index: 70 !important;
+}
+
+.yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"] {
+  z-index: 90 !important;
+}
+
+.yapster-messages-thread:has(.yapster-message-composer-shell [data-chat-popover] > div[class*="w-72"]) .yapster-message-hover-actions {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Mobile notifications behave like a viewport sheet, not a desktop dropdown anchored off-screen. */
+@media (max-width: 760px) {
+  .yapster-notification-menu {
+    position: fixed !important;
+    top: 70px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-top: 0 !important;
+    max-height: calc(100dvh - 88px) !important;
+    border-radius: 16px !important;
+    z-index: 90 !important;
+  }
+
+  .yapster-notification-menu > div:nth-child(2) {
+    max-height: min(420px, calc(100dvh - 190px)) !important;
+  }
+}
