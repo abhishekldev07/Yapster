@@ -107,3 +107,9 @@ html[data-theme="dark"] [id^="comment-"].border-violet-400 {
   margin-right: auto !important;
   text-align: center !important;
 }
+.text-center > div.mx-auto,
+.text-center > svg,
+.text-center > [class*="place-items-center"] {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
